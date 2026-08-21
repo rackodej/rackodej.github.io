@@ -1,0 +1,196 @@
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>rackodej/Taking the OSWE in 2025</title>
+    <meta property="og:title" content="rackodej/Taking the OSWE in 2025">
+    <meta name="twitter:title" content="rackodej/Taking the OSWE in 2025">
+    <link rel="alternate" type="application/rss+xml" title="rackodej RSS (EN)" href="../../../en/feed.xml">
+    <link rel="stylesheet" href="../../../src/styles.css">
+    <link rel="stylesheet" href="../../../src/prism-layer.css">
+    <link rel="stylesheet" href="https://unpkg.com/prismjs/themes/prism-okaidia.css">
+<link rel="stylesheet" href="https://unpkg.com/prismjs/plugins/command-line/prism-command-line.css">
+
+
+
+  </head>
+  <body>
+    <div class="language-switcher"><div class="lang-buttons-group right">
+          <form action="../../../ru/posts/oswe/" method="get" class="xp-form-inline">
+            <button type="submit"
+                    
+                    >
+              RU
+            </button>
+          </form>
+          <form action="../../../en/posts/oswe/" method="get" class="xp-form-inline">
+            <button type="submit"
+                    aria-pressed="true"
+                    >
+              EN
+            </button>
+          </form>
+        </div><form action="../../../en/" method="get" class="xp-form-inline center">
+        <button type="submit">Main</button>
+      </form>
+
+      <div class="toc-dock toc-collapsed">
+          <div class="toc-heading-row">
+            <div class="toc-heading" id="toc-title">Contents</div>
+            <button class="toc-toggle" type="button" aria-expanded="false" aria-controls="page-toc" data-hide-label="[hide]" data-show-label="[show]">[show]</button>
+          </div>
+          <div class="toc-content" id="page-toc" aria-labelledby="toc-title">
+            <nav class="toc" >
+        <ol><li><a href="#impressions">Impressions</a><ol><li><a href="#main-complaints-about-the-infrastructure%3A">Main complaints about the infrastructure:</a></li></ol></li><li><a href="#%F0%9F%97%93%EF%B8%8F-a-year-before-the-exam">🗓️ A year before the exam</a></li><li><a href="#%E2%8F%B3-a-month-before-the-exam">⏳ A month before the exam</a></li><li><a href="#%E2%8F%B0-two-hours-before-the-exam">⏰ Two hours before the exam</a></li><li><a href="#%F0%9F%9B%A0%EF%B8%8F-the-exam">🛠️ The exam</a><ol><li><a href="#%F0%9F%91%80-proctoring">👀 Proctoring</a></li><li><a href="#%F0%9F%94%93-task-%231">🔓 Task1</a></li><li><a href="#%F0%9F%94%93-task-%232">🔓 Task2</a></li><li><a href="#%F0%9F%93%9D-the-report">📝 The report</a></li></ol></li></ol>
+      </nav>
+          </div>
+        </div></div>
+
+    <main class="container"><h1 id="impressions" tabindex="-1">Impressions</h1>
+<p>Overall, the exam is neither easy nor hard, but it’s extensive in both practical and theoretical knowledge. I’d rate it at a <code>solid mid-level</code>.
+The biggest snag for <code>2025</code> is the requirement to hand-write code, without an LLM, for the final one-shot exploits.<br>
+Given what modern local models can do, this requirement feels debatable: it tests muscle memory and familiarity with common patterns more than analysis and solution design. I had to adapt and dust off some old skills.</p>
+<h2 id="main-complaints-about-the-infrastructure%3A" tabindex="-1">Main complaints about the infrastructure:</h2>
+<ol>
+<li><code class="yellow-underline">You can’t copy code out.</code> Train yourself to keep the app context in your head and via screenshots.</li>
+<li><code class="yellow-underline">FPS in the Linux RDP session is very low</code> — +50 to the suffering.</li>
+<li><code class="yellow-underline">X11 forwarding turned out to be completely dead</code>: VS Code couldn’t even fully load.</li>
+</ol>
+<h1 id="%F0%9F%97%93%EF%B8%8F-a-year-before-the-exam" tabindex="-1">🗓️ A year before the exam</h1>
+<p>I planned to do all the labs at least once or twice a week. <br> <em>Naturally, that didn’t really happen.</em></p>
+<h1 id="%E2%8F%B3-a-month-before-the-exam" tabindex="-1">⏳ A month before the exam</h1>
+<p>I read the theory cover to cover. Very little was new: the material is dull, poorly structured, and the logic of presentation jumps around. On top of that, the course turned out to be incomplete—there were topics on the exam that weren’t in the text at all.</p>
+<h1 id="%E2%8F%B0-two-hours-before-the-exam" tabindex="-1">⏰ Two hours before the exam</h1>
+<p>Before you start, check:</p>
+<ol>
+<li><code class="yellow-underline">Your Kali VM is working</code>, <code class="violet-fill">Ctrl+C/V</code> work on the host system, and files copy over.</li>
+<li><code class="yellow-underline">Your webcam works.</code> My <code>Insta360</code> didn’t work “out of the box” on Ubuntu—I had to urgently grab a laptop. <code>Burp</code> ate all the RAM, so I had to quickly sort out <code>UVC/UAC</code>. By the way, <code>Burp</code> is the only program that consumes more memory than <code>Chrome</code>.</li>
+<li>The router had <code>XRAY+Reality</code> configured. <code class="yellow-underline">Because of this, the connection to the exam network wouldn’t establish</code>. I had to switch to the ISP network. Downside: some sites are blocked—you can’t read the info you need.</li>
+<li><code class="yellow-underline">Passport (international)</code>: you’ll be asked to show it to the camera, as well as the room. No lighting requirements.</li>
+</ol>
+<h1 id="%F0%9F%9B%A0%EF%B8%8F-the-exam" tabindex="-1">🛠️ The exam</h1>
+<h2 id="%F0%9F%91%80-proctoring" tabindex="-1">👀 Proctoring</h2>
+<p>Proctoring itself is a web page where all your screens are streamed (I had three monitors). The UI/UX is slapped together, so be ready to be asked to restart screen sharing repeatedly. At the start of the exam, they’ll ask you to run a couple of typical commands on the system and upload the output to their pastebin. They do this once for the entire exam. After I moved to another machine, they didn’t request the output again. <br>
+On the second day, I took short breaks every hour. You just write in the chat that you need a break and go handle your stuff.</p>
+<h2 id="%F0%9F%94%93-task-%231" tabindex="-1">🔓 Task #1</h2>
+<p>The exam started at 21:00; <code>~48 hours in total are given</code>. That turned out to be great for me: you can skim the code of the first task, outline possible vectors, go to sleep, and in the morning—fresh—start implementing the plan.<br>
+Impression-wise, the split is: the first task is comprehensive, while the second is solved rather bluntly, without finesse or multithreaded programming.</p>
+<p>After waking up, I got to work: coding, searching, writing—and by 18:00 it turned out my solution didn’t work. Time and energy wasted;<br>
+<em>You’re repeating the year. Should’ve solved the machines.</em>
+I had to switch to a more obvious approach. By 23:00 I had a full solution, and closer to 02:00 I finished the one-shot exploit. Went to sleep. By the end of Day 1, one machine (50 points) was fully solved. You need 85 points minimum. I hadn’t even looked at the second task yet.</p>
+<h2 id="%F0%9F%94%93-task-%232" tabindex="-1">🔓 Task #2</h2>
+<p>Woke up at 9:30. After carefully reading the description, it became clear where to go.<br>
+The description may hint at which vectors to look for in general.<br>
+After obtaining admin rights, the RCE came even easier: the source code + settings made the spot obvious. It was 16:00.
+All four flags were collected across the two tasks (per task: 35 for admin rights and 15 for RCE). Two hours later I wrote the one-shot exploit.</p>
+<h2 id="%F0%9F%93%9D-the-report" tabindex="-1">📝 The report</h2>
+<p>I finished the exam two hours before the official end. If you had lab/connection issues, you can try to <em>negotiate</em> an extension.</p>
+<p>I decided not to put off the report and wrote it that same evening—this may have saved my exam. The next morning the VM (VirtualBox; VMWare never worked) hard-hung. All console and Burp material was lost.</p>
+<p>The report took another five hours. Before closing the exam early, I recommend taking your exploits and re-capturing all key steps with screenshots along the exploitation path so you won’t have to describe gaps in the <code>evidence</code> “in words”.</p>
+<p>The result arrives by email within a day; they don’t disclose the exact number of points credited.</p>
+<p><code class="yellow-underline">Try to account for low-probability events</code>: power outage, internet loss, random reboot.</p>
+<p>The tasks don’t require superhuman effort. Don’t forget to eat, sleep well, and take walks. There’s plenty of time.</p>
+<p>⭐ Subjective rating: 6.5/10</p>
+
+    </main>
+
+    <footer class="site-footer"></footer>
+    <script defer src="../../../src/copy.js"></script>
+    <script defer src="../../../src/ln-gaps.js"></script>
+    <script defer src="../../../src/asciinema-loader.js"></script>
+    <script defer src="../../../src/anki-cards.js"></script>
+    <script defer src="../../../src/activity-popover.js"></script>
+    <script>
+  window.__DEV_FONT_EXTRA = {
+    stacks: {
+      system: 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      forma:  '"Forma", Tahoma, "Segoe UI", Arial, sans-serif',
+      ia:     '"iA Writer Duospace", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace',
+      jb:     '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+
+      inter: '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif',
+      roboto: '"Roboto", system-ui, -apple-system, "Segoe UI", "Noto Sans", Arial, sans-serif',
+      notosans: '"Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      ibmplexsans: '"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      ptsans: '"PT Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      opensans: '"Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      manrope: '"Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      golos: '"Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      firasans: '"Fira Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      ubuntu: '"Ubuntu", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      mulish: '"Mulish", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      rubik: '"Rubik", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      exo2: '"Exo 2", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      lato: '"Lato", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      montserrat: '"Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      oswald: '"Oswald", "Noto Sans", system-ui, -apple-system, "Segoe UI", Arial, sans-serif',
+      notoserif: '"Noto Serif", Georgia, "Times New Roman", serif',
+      ptserif: '"PT Serif", Georgia, "Times New Roman", serif',
+      merriweather: '"Merriweather", Georgia, "Times New Roman", serif',
+      lora: '"Lora", Georgia, "Times New Roman", serif',
+      literata: '"Literata", Georgia, "Times New Roman", serif',
+      playfair: '"Playfair Display", "Times New Roman", Georgia, serif',
+      jbmono: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      firacode: '"Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      plexmono: '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      ptmono: '"PT Mono", ui-monospace, Menlo, Consolas, monospace',
+      ubuntumono: '"Ubuntu Mono", ui-monospace, Menlo, Consolas, monospace',
+      cousine: '"Cousine", ui-monospace, Menlo, Consolas, monospace',
+    },
+    webfonts: {
+      forma: '',
+      ia:    'https://fonts.googleapis.com/css2?family=IA+Writer+Duospace&display=swap',
+      jb:    'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap',
+
+      inter: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap&subset=cyrillic',
+      roboto: 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap&subset=cyrillic',
+      notosans: 'https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      ibmplexsans: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      ptsans: 'https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap&subset=cyrillic',
+      opensans: 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      manrope: 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap&subset=cyrillic',
+      golos: 'https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;600;700&display=swap&subset=cyrillic',
+      firasans: 'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      ubuntu: 'https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap&subset=cyrillic',
+      mulish: 'https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700&display=swap&subset=cyrillic',
+      rubik: 'https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap&subset=cyrillic',
+      exo2: 'https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap&subset=cyrillic',
+      lato: 'https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap&subset=cyrillic',
+      montserrat: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap&subset=cyrillic',
+      oswald: 'https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap&subset=cyrillic',
+      notoserif: 'https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&display=swap&subset=cyrillic',
+      ptserif: 'https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&display=swap&subset=cyrillic',
+      merriweather: 'https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap&subset=cyrillic',
+      lora: 'https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap&subset=cyrillic',
+      literata: 'https://fonts.googleapis.com/css2?family=Literata:wght@400;600;700&display=swap&subset=cyrillic',
+      playfair: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap&subset=cyrillic',
+      jbmono: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap&subset=cyrillic',
+      firacode: 'https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap&subset=cyrillic',
+      plexmono: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap&subset=cyrillic',
+      ptmono: 'https://fonts.googleapis.com/css2?family=PT+Mono&display=swap&subset=cyrillic',
+      ubuntumono: 'https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap&subset=cyrillic',
+      cousine: 'https://fonts.googleapis.com/css2?family=Cousine:wght@400;700&display=swap&subset=cyrillic',
+    }
+  };
+</script>
+
+    <!-- script defer src="../../../src/dev-fonts.js"></script -->
+  <script type="module" async>import mermaid from "https://unpkg.com/mermaid@11.11.0/dist/mermaid.esm.min.mjs";document.addEventListener('DOMContentLoaded', mermaid.initialize({"loadOnSave":true}));</script>
+  <script defer src="../../../src/toc-autohide.js"></script>
+<script>window.Prism = window.Prism || {}; Prism.manual = true;</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+
+<!-- Языки, которые реально используешь -->
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js" defer></script>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/command-line/prism-command-line.min.js" defer></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('pre.command-line > code').forEach(Prism.highlightElement);
+  });
+</script>
+  </body>
+  
+</html>

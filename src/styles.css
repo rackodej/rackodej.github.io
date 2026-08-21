@@ -1,0 +1,1803 @@
+/* ===== 1) LAYERS ORDER — обязательно самым первым ===== */
+@layer prism, base, components;
+
+/* ===== 2) IMPORTS (сразу после order) ===== */
+@import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..900');
+@import url('https://unpkg.com/prismjs/themes/prism.css') layer(prism);
+
+:root { --ui-radius: 3px; }
+
+/* -------------------------------------------------------------------------- */
+/* 3) PRISM (lowest) — базовый вид блоков кода                                */
+/* -------------------------------------------------------------------------- */
+@layer prism {
+  pre[class*="language-"] {
+    background: #f6f8fa;
+    border: 1px solid #d0d7de;
+    border-radius: var(--ui-radius);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    counter-reset: sh-line var(--ln-base, 0);
+  }
+
+  /* Кнопка копирования (позиционирование; стиль наследуется) */
+  pre[class*="language-"] > .copy-code__btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    opacity: 0;
+    z-index: 1;
+  }
+  pre[class*="language-"] :where(:hover, :focus-within) > .copy-code__btn { opacity: 1; }
+  @media (hover: none) { pre[class*="language-"] > .copy-code__btn { opacity: 1; } }
+
+  /* Нумерация строк — inline-block */
+  pre[class*="language-"] .highlight-line {
+    counter-increment: sh-line;
+    display: inline-block;
+    width: 100%;
+    position: relative;
+    vertical-align: top;
+    padding-left: 4em; /* место под номера и отступ от них до кода */
+  }
+  pre[class*="language-"] .highlight-line::before {
+    content: counter(sh-line);
+    position: absolute;
+    left: 0.25em;
+    width: 2.2em;
+    text-align: right;
+    opacity: 0.55;
+    user-select: none;
+  }
+  pre[class*="language-"] .highlight-line.ellipsis { counter-increment: none; background: transparent; }
+  pre[class*="language-"] .highlight-line.ellipsis::before { content: "…"; opacity: .7; }
+  pre[class*="language-"] .highlight-line:empty::after { content: " "; }
+
+  /* Обёртка .no-line-numbers отключает номера у отдельных блоков кода. */
+  .no-line-numbers .highlight-line {
+    counter-increment: none;
+    padding-left: 0;
+  }
+  .no-line-numbers .highlight-line::before {
+    content: none;
+    display: none;
+  }
+
+  /* Подсветки строк */
+  pre[class*="language-"] .highlight-line-active {
+    background: rgba(100, 116, 139, 0.14);
+    box-shadow: inset 2px 0 0 rgba(71, 85, 105, 0.65);
+  }
+  @media (prefers-color-scheme: dark) {
+    pre[class*="language-"] .highlight-line-active {
+      background: rgba(148, 163, 184, 0.12);
+      box-shadow: inset 2px 0 0 rgba(148, 163, 184, 0.55);
+    }
+  }
+  pre[class*="language-"] .highlight-line-add {
+    background: hsla(120, 73%, 75%, 0.30);
+    box-shadow: inset 2px 0 0 hsl(120, 73%, 45%);
+  }
+  pre[class*="language-"] .highlight-line-remove {
+    background: hsla(350, 100%, 88%, 0.40);
+    box-shadow: inset 2px 0 0 hsl(350, 90%, 45%);
+  }
+
+  /* Без подчёркиваний у ins/del и т.п. */
+  pre[class*="language-"] del,
+  pre[class*="language-"] del *,
+  pre[class*="language-"] ins,
+  pre[class*="language-"] ins *,
+  pre[class*="language-"] .token.deleted,
+  pre[class*="language-"] .token.inserted,
+  pre[class*="language-"] .deleted,
+  pre[class*="language-"] .inserted { text-decoration: none !important; }
+
+  pre[class*="language-"] ins,
+  pre[class*="language-"] .token.inserted {
+    background: hsla(120, 73%, 75%, 0.30);
+    box-shadow: inset 2px 0 0 hsl(120, 73%, 45%);
+  }
+  pre[class*="language-"] del,
+  pre[class*="language-"] .token.deleted {
+    background: hsla(350, 100%, 88%, 0.40);
+    box-shadow: inset 2px 0 0 hsl(350, 90%, 45%);
+  }
+
+  :where(pre, code)[class*="language-"] .token.operator,
+  :where(pre, code)[class*="language-"] .token.entity,
+  :where(pre, code)[class*="language-"] .token.url,
+  .language-css .token.string,
+  .style .token.string {
+    background: none !important;
+    background-color: transparent !important;
+    box-shadow: none;
+    text-decoration: none;
+  }
+
+  /* live region для кнопки копирования */
+  pre[class*="language-"] > .sr-only {
+    position: absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* CONTENT ACTIVITY — 53-week GitHub-style heatmap                           */
+/* -------------------------------------------------------------------------- */
+@layer components {
+  .activity-heatmap {
+    --activity-border: #7956e8;
+    --activity-empty-border-strength: 22%; /* доля фиолетового в рамке пустой соты */
+    --activity-empty-border: color-mix(in srgb, var(--activity-border) var(--activity-empty-border-strength), #fff);
+    --activity-empty: #fff;
+    --activity-1: #d8ccff;
+    --activity-2: #aa8cff;
+    --activity-3: #7956e8;
+    --activity-4: #5634bd;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    width: 100%;
+    border: 0;
+    border-radius: var(--ui-radius);
+    background: #fff;
+    box-shadow: none;
+    box-sizing: border-box;
+  }
+  .activity-heatmap__day {
+    --activity-cell-border: var(--activity-border);
+    --activity-cell-fill: var(--activity-empty);
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / .88;
+    min-width: 0;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border: 0 !important;
+    border-radius: 0;
+    background: var(--activity-cell-border);
+    background-image: none !important;
+    box-shadow: none;
+    box-sizing: border-box;
+    font-size: 0;
+    line-height: 0;
+    vertical-align: top;
+    clip-path: polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0 50%);
+  }
+  .activity-heatmap__day::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    background: var(--activity-cell-fill);
+    clip-path: inherit;
+    pointer-events: none;
+  }
+  .activity-heatmap :is([data-level="1"]) { --activity-cell-fill: var(--activity-1); }
+  .activity-heatmap :is([data-level="2"]) { --activity-cell-fill: var(--activity-2); }
+  .activity-heatmap :is([data-level="3"]) { --activity-cell-fill: var(--activity-3); }
+  .activity-heatmap :is([data-level="4"]) { --activity-cell-fill: var(--activity-4); }
+  .activity-heatmap__day[data-level="0"] { --activity-cell-border: var(--activity-empty-border); }
+  .activity-heatmap__day[data-level="0"]:hover { --activity-cell-fill: #ffd666; }
+  @media (prefers-color-scheme: dark) {
+    .activity-heatmap__day[data-level="0"]:hover { --activity-cell-fill: #ffd666; }
+  }
+  .activity-heatmap__chart { width: 100%; }
+  .activity-heatmap__months {
+    display: grid;
+    grid-template-columns: repeat(53, minmax(0, 1fr));
+    gap: 2px;
+    margin: 0 0 .55rem 2.6rem;
+    min-height: 1em;
+    color: #625d6e;
+    font-size: .68rem;
+    letter-spacing: .03em;
+  }
+  .activity-heatmap__months span { white-space: nowrap; }
+  .activity-heatmap__body {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    gap: .35rem;
+    padding-bottom: .55rem;
+  }
+  .activity-heatmap__week {
+    position: relative;
+    z-index: 0;
+    display: grid;
+    grid-template-rows: repeat(7, auto);
+    width: calc(100% + 4px);
+    gap: 4px;
+  }
+  .activity-heatmap__week:is(:hover, :focus-within) { z-index: 30; }
+  .activity-heatmap__week:nth-child(even) { transform: translateY(7.15%); }
+  .activity-heatmap__weekdays {
+    position: absolute;
+    inset: 0 auto 0 0;
+    display: grid;
+    width: 2.25rem;
+    grid-template-rows: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+    color: #625d6e;
+    font-size: .62rem;
+    line-height: 1;
+  }
+  .activity-heatmap__weekdays span {
+    display: flex;
+    align-items: center;
+    justify-content: end;
+  }
+  .activity-heatmap__weeks {
+    grid-column: 2;
+    display: grid;
+    grid-template-columns: repeat(53, minmax(0, 1fr));
+    gap: 2px;
+    padding-right: 4px;
+    box-sizing: border-box;
+  }
+  .activity-heatmap__day-wrap { position: relative; min-width: 0; }
+  button.activity-heatmap__day { cursor: pointer; }
+  button.activity-heatmap__day:hover { transform: none; filter: brightness(1.18) saturate(1.08); }
+  button.activity-heatmap__day:focus-visible {
+    outline: 2px solid #fff !important;
+    outline-offset: 2px !important;
+  }
+  .activity-heatmap__popover {
+    position: absolute;
+    bottom: calc(100% + .55rem);
+    left: 50%;
+    z-index: 20;
+    display: none;
+    width: max-content;
+    max-width: min(20rem, 70vw);
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid #d8d1e7;
+    border-radius: var(--ui-radius);
+    /* Visible while macOS elastically scrolls the popover past its content. */
+    background: #fff;
+    box-shadow: none;
+    color: #292530;
+    font-size: .72rem;
+    line-height: 1.35;
+    transform: translateX(-50%);
+  }
+  .activity-heatmap__popover-scroll {
+    max-height: var(--activity-popover-max-height, calc(100dvh - 1.5rem));
+    overflow-y: auto;
+    overscroll-behavior: auto;
+  }
+  .activity-heatmap__popover-content {
+    padding: .6rem .75rem;
+    background: #fff;
+  }
+  .activity-heatmap__day-wrap[data-popover-position="below"] .activity-heatmap__popover {
+    top: calc(100% + .55rem);
+    bottom: auto;
+  }
+  .activity-heatmap__day-wrap:is(:hover, :focus-within) .activity-heatmap__popover { display: block; }
+  .activity-heatmap__week:nth-last-child(-n+10) .activity-heatmap__popover {
+    right: 0;
+    left: auto;
+    transform: none;
+  }
+  .activity-heatmap__week:nth-child(-n+10) .activity-heatmap__popover {
+    right: auto;
+    left: 0;
+    transform: none;
+  }
+  .activity-heatmap__popover strong,
+  .activity-heatmap__popover-label { display: block; }
+  .activity-heatmap__popover-label { margin-top: .4rem; font-weight: 700; }
+  .activity-heatmap__popover ul { margin: .15rem 0 0; padding-left: 1rem; }
+  .activity-heatmap__popover li + li { margin-top: .1rem; }
+  .activity-heatmap__log-list { display: grid; gap: .55rem; margin-top: .25rem; }
+  .activity-heatmap__log-entry + .activity-heatmap__log-entry {
+    padding-top: .55rem;
+    border-top: 1px solid #e5e1ed;
+  }
+  .activity-heatmap__log-text > :first-child { margin-top: 0; }
+  .activity-heatmap__log-text > :last-child { margin-bottom: 0; }
+  .activity-heatmap__log-tags { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .35rem; }
+  .activity-heatmap__log-tags a,
+  .log-history__tags a {
+    padding: .05rem .35rem;
+    border: 1px solid var(--activity-border, #7956e8);
+    border-radius: var(--ui-radius);
+    color: #5634bd;
+    font-size: .64rem;
+    line-height: 1.35;
+    text-decoration: none;
+  }
+  .activity-heatmap__log-tags a:hover,
+  .log-history__tags a:hover { background: #ffec99; }
+
+  .log-history { display: grid; gap: 2rem; max-width: 52rem; }
+  .log-history__day h2 { margin: 0 0 .75rem; font-variant-numeric: tabular-nums; }
+  .log-history__entries { display: grid; gap: .8rem; }
+  .log-history__entry {
+    padding: .8rem 1rem;
+    border-left: 3px solid var(--activity-border, #7956e8);
+    background: #faf9fc;
+  }
+  .log-history__label { display: block; margin-bottom: .35rem; }
+  .log-history__materials { margin: 0; padding-left: 1.2rem; }
+  .log-history__materials li + li { margin-top: .2rem; }
+  .log-history__text > :first-child { margin-top: 0; }
+  .log-history__text > :last-child { margin-bottom: 0; }
+  .log-history__tags { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .55rem; }
+  .tag-results { display: grid; gap: .55rem; margin: 0 0 1.5rem; padding: 0; }
+  .tag-results li { display: grid; grid-template-columns: minmax(8rem, auto) 1fr; gap: .75rem; }
+  .tag-results__meta { color: #625d6e; font-size: .8rem; }
+
+  @media (max-width: 640px) {
+    .activity-heatmap { display: none; }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 4) BASE (theme) — шрифты, сетки, кнопки, типографика, контейнер            */
+/* -------------------------------------------------------------------------- */
+@layer base {
+  html, body { height: 100%; }
+  .container { max-width: 65rem; margin: 6.5rem auto 3rem; padding: 0 12px; }
+
+  :root {
+    --font-xp: "Cousine", ui-monospace, Menlo, Consolas, monospace;
+    --font-forma: "Forma", Tahoma, "Segoe UI", Arial, sans-serif;
+    --font-golos: "Golos Text", ui-monospace, Menlo, Consolas, monospace;
+  }
+  html, body,
+  button, input, select, textarea,
+  .window, .title-bar, .window-body, .status-bar,
+  table { font-family: var(--font-xp) !important; }
+  html, body {
+    font-size: 18px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Шапка: RU/EN сверху, «Главная» под ними, правая колонка по содержимому */
+  .language-switcher {
+    position: fixed;
+    top: 10px; left: 0; right: 0;
+    z-index: 50;
+
+    display: grid;
+    grid-template-columns: 1fr max-content;
+    grid-template-rows: auto auto; /* ряд 1: RU/EN, ряд 2: Главная */
+    align-items: center;
+    gap: 6px 12px;
+
+    padding: 0 12px;
+    background: transparent;
+  }
+  .language-switcher .right {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    display: flex;
+    gap: 8px;
+  }
+  .language-switcher .center {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: stretch;
+    display: block;
+  }
+  .language-switcher .center button { width: 100%; }
+  .xp-form-inline { display: inline-block; margin: 0; }
+
+  /* Утилиты сеток */
+  .row { display: flex; align-items: center; gap: 8px; }
+  .row.between { justify-content: space-between; }
+  .grid { display: grid; gap: 12px; }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-span-2 { grid-column: span 2; }
+  @media (max-width: 900px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .grid-span-2 { grid-column: auto; }
+  }
+
+  /* Кнопки (XP-тема) */
+  button { border-color: #707070 !important; }
+  button:focus { outline: none !important; }
+  button:focus-visible { outline: 1px dotted #000 !important; outline-offset: -3px !important; }
+  .title-bar-controls button { border-color: #707070 !important; }
+
+  button {
+    display: inline-block;
+    font-family: Roboto, Tahoma, "Segoe UI", Arial, sans-serif;
+    font-size: 11px;
+    line-height: 23px;
+    height: 23px;
+    min-width: 75px;
+    padding: 0 12px;
+    color: #000;
+    background-image: linear-gradient(#ffffff, #ecebe5 86%, #d8d0c4);
+    border: 1px solid #707070;
+    border-radius: var(--ui-radius);
+    box-shadow: inset 0 1px 0 #ffffff;
+    transition: background-image 120ms ease, background-color 120ms ease,
+                box-shadow 120ms ease, border-color 120ms ease, transform 20ms ease;
+  }
+  button:hover {
+    background-image: linear-gradient(#ffffff, #f2f1ec 86%, #dfd9cf);
+    border-color: #6a6a6a;
+  }
+  button:active {
+    background-image: linear-gradient(#d8d0c4, #ecebe5 14%, #ffffff);
+    box-shadow: inset 0 2px 3px rgba(0,0,0,.25);
+    transform: translateY(1px);
+  }
+  button:disabled {
+    opacity: .6; filter: grayscale(20%); cursor: not-allowed; transform: none;
+    box-shadow: inset 0 1px 0 #ffffff;
+  }
+
+  table thead th { text-align: center !important; white-space: nowrap; }
+  table td, table tbody td { text-align: left !important; }
+  .window-body p, .window-body li, .window-body td { line-height: 1.5; }
+
+  @media (max-width: 520px) { .container { margin: 5.5rem auto 2.5rem; } }
+
+  p { line-height: 1.7; }
+  p::first-letter { display: inline-block; margin-left: 1ch; }
+  .lucide,
+  .heroic {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+    flex: 0 0 auto;
+  }
+  .encrypted-marker {
+    display: inline-flex;
+    align-items: baseline;
+    margin-right: 0.3em;
+  }
+  p code {
+    background: #f2e6ff; border: 1px solid #cab5ff; color: inherit;
+    padding: 0.1em 0.35em; border-radius: var(--ui-radius);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+    font-size: 0.95em; line-height: inherit;
+  }
+  .pill{
+    background: #f3ffe6; border: 1px solid #b5ffbf; color: inherit;
+    padding: 0.1em 0.35em; border-radius: var(--ui-radius);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+    font-size: 0.95em; line-height: inherit;
+  }
+
+  .yellow-underline {
+    background: none !important; border: none !important;
+    text-decoration: underline;
+    text-decoration-color: #ffbf00;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.35em;
+    text-decoration-skip-ink: none;
+  }
+
+  .violet-fill {
+    background: #f2e6ff; border: 1px solid #cab5ff; color: inherit;
+    padding: 0.1em 0.35em; border-radius: var(--ui-radius);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+    font-size: 0.95em; line-height: inherit;
+  }
+
+  .site-footer { padding: 40px 12px; }
+
+  /* ---------------------------------------------------------------------- */
+  /* 4.1) BLOCKQUOTE TOKENS — светлая тема + тёмные override                */
+  /* ---------------------------------------------------------------------- */
+  :root {
+    /* уровни вложенности */
+    --bq1-accent: #2563eb; /* blue-600 */
+    --bq1-bg:     #eef2ff; /* indigo-50 */
+    --bq2-accent: #16a34a; /* green-600 */
+    --bq2-bg:     #ecfdf5; /* emerald-50 */
+    --bq3-accent: #f59e0b; /* amber-500 */
+    --bq3-bg:     #fff7ed; /* orange-50 */
+
+    /* типы уведомлений */
+    --info-accent:    #0ea5e9; /* sky-500 */
+    --info-bg:        #f0f9ff;
+    --success-accent: #16a34a; /* green-600 */
+    --success-bg:     #ecfdf5;
+    --warning-accent: #f59e0b; /* amber-500 */
+    --warning-bg:     #fffbeb;
+    --danger-accent:  #ef4444; /* red-500 */
+    --danger-bg:      #fef2f2;
+  }
+
+}
+
+/* -------------------------------------------------------------------------- */
+/* 5) COMPONENTS — списки/посты, двухколоночный макет, ToC, мермейд и пр.     */
+/* -------------------------------------------------------------------------- */
+@layer components {
+  /* --- Списки в контейнере --- */
+  .container ol { --li-line: 1.8; --li-gap: 0.9em; }
+  .container ol > li { line-height: var(--li-line); }
+  .container ol > li + li { margin-top: var(--li-gap); }
+  .container ol > li code,
+  .container ol > li code.yellow-underline { line-height: inherit; }
+
+  .img-center, .container img.img-center { display:block; margin-inline:auto; max-width:100%; height:auto; }
+
+  /* Только этот список: убрать маркеры и отступы */
+  .container ul.no-markers { list-style:none; margin:0; padding:0; padding-inline-start:0; }
+  .container ul.no-markers > li + li { margin-top: var(--post-list-row-gap); }
+
+  /* Пост-лист */
+  .no-markers { list-style:none; margin:0; padding:0; }
+  .post-list .post-row {
+    display:grid;
+    grid-template-columns: var(--date-col-width, 5.5ch) minmax(0, var(--cat-col-width, 12ch)) minmax(0, 1fr);
+    align-items:baseline;
+    column-gap:1rem;
+    row-gap:.35rem;
+    padding:.25rem 0;
+  }
+  .post-list .post-row .post-piece { position:relative; min-width:0; }
+  .post-list .post-row .post-category { padding-left:.75rem; }
+  .post-list .post-row .post-category::before {
+    content:"·"; position:absolute; left:0; opacity:.6;
+  }
+  .post-date { font-variant-numeric: tabular-nums; }
+  .post-date-empty {
+    visibility: hidden;
+  }
+  .post-date-empty::before {
+    content: none !important;
+  }
+  .post-rating { letter-spacing:.08ch; }
+  .post-link { text-decoration:none; }
+  .post-link:hover { text-decoration:underline; }
+  .post-date .updated-flag { display:inline-block; width:0; margin-left:0; line-height:1; vertical-align:baseline; text-align:left; }
+  .post-date .updated-flag[data-updated="1"] { width:1ch; margin-left:.15ch; }
+  .post-date .updated-flag[data-updated="1"]::before { content:"↑"; }
+
+  .content-todo {
+    max-width: 52rem;
+    margin-block: 1.5rem 3rem;
+  }
+  .content-todo__summary {
+    margin: 0 0 1rem;
+    color: #4b5563;
+    font-size: .95rem;
+  }
+  .content-todo__list {
+    display: grid;
+    gap: .75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .content-todo__item {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: .75rem 1rem;
+    align-items: start;
+    padding: .75rem .9rem;
+    border: 1px solid #d1d5db;
+    border-radius: var(--ui-radius);
+    background: #fff;
+  }
+  .content-todo__label {
+    width: max-content;
+    max-width: 100%;
+    padding: .1rem .45rem;
+    border: 1px solid #9ca3af;
+    border-radius: var(--ui-radius);
+    color: #374151;
+    font-size: .78rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+  .content-todo__body {
+    display: grid;
+    gap: .25rem;
+    min-width: 0;
+  }
+  .content-todo__action {
+    font-weight: 700;
+  }
+  .content-todo__path {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    padding: .12rem .35rem;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--ui-radius);
+    background: #f9fafb;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+  .content-todo__reason {
+    color: #4b5563;
+    font-size: .92rem;
+  }
+  @media (max-width: 640px) {
+    .content-todo__item {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .draft-marker {
+    display: inline-block;
+    margin-right: .35rem;
+    color: #b91c1c;
+    font-size: .85em;
+    font-weight: 700;
+    line-height: 1;
+    vertical-align: baseline;
+  }
+  .future-marker {
+    display: inline-block;
+    margin-right: .35rem;
+    color: #6d28d9;
+    font-size: .85em;
+    font-weight: 700;
+    line-height: 1;
+    vertical-align: baseline;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 1px solid #d8d1e7;
+  }
+
+  /* Категория фиксированной ширины (если используется) */
+  .post-category {
+    display:block;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .post-category a { color: inherit; text-decoration: none; }
+  .post-category a:hover { text-decoration: underline; }
+  .content-tag-list {
+    margin: 0 0 1rem;
+    line-height: 1.4;
+  }
+  .content-tag-link {
+    text-decoration: none;
+  }
+  .content-tag-link:hover {
+    text-decoration: underline;
+  }
+
+  .anki-cards {
+    margin: 1.5rem auto;
+    max-width: 46rem;
+  }
+  .anki-cards__status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
+    margin-bottom: .5rem;
+    color: #4b5563;
+    font-size: .9rem;
+  }
+  .anki-cards__card {
+    min-height: 12rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid #d0d7de;
+    border-radius: var(--ui-radius);
+    background: #fff;
+    box-shadow: 0 1px 0 rgba(0,0,0,.04);
+    text-align: center;
+  }
+  .anki-cards__label {
+    margin-bottom: .35rem;
+    color: #6b7280;
+    font-size: .85rem;
+  }
+  .anki-cards__question {
+    font-weight: 600;
+  }
+  .anki-cards__answer {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+  }
+  .anki-cards__controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .5rem;
+    margin-top: .75rem;
+  }
+
+  /* --- Двухколоночный макет: посты + шортсы --- */
+  :root{
+    --col-min: 24rem;        /* мин. ширина каждой колонки */
+    --two-col-gap: 2rem;     /* промежуток между колонками */
+    --extra-room: 100px;     /* «+100px» запас */
+    --two-col-cutoff: calc((var(--col-min) * 2) + var(--two-col-gap) + var(--extra-room)); /* ≈ 1400px при 18px */
+    --post-list-row-gap: .5em; /* вертикальный зазор между строками post-list (Посты и сайдбар одинаково) */
+  }
+
+  /* Контейнер измерения — на main.container */
+  main.container { container-type: inline-size; container-name: page; }
+
+  .layout-two-col {
+    display: grid;
+    grid-template-columns: minmax(var(--col-min), 1fr) minmax(var(--col-min), 1fr);
+    gap: var(--two-col-gap);
+    align-items: start;
+    min-width: 0;
+  }
+  .content-col, .aside-col { min-width: 0; }
+
+  /* Сайдбар (шортсы): липкий на широком экране */
+  .aside-col {
+    position: sticky;
+    top: 0;
+    max-height: calc(100vh - 2rem);
+    overflow: auto;
+    padding-block: .25rem;
+  }
+  .aside-title { margin: 0 0 .75rem 0; font-size: 1rem; opacity: .9; }
+
+  /* В сайдбаре — строки в одну линию, с троеточием */
+  .aside-col .post-list { margin: 0; padding: 0; }
+  .aside-col .post-row {
+    grid-template-columns: 5ch minmax(0, var(--cat-col-width, 12ch)) minmax(0, 1fr);
+    column-gap: .4rem;
+    row-gap: 0;
+    padding-block: .25rem;
+  }
+  .aside-col .post-piece { min-width: 0; }
+  .aside-col .post-category { padding-left: .45rem; }
+  .aside-col .post-category::before { left: 0; }
+  .aside-col .post-piece { min-width: 0; }
+  .aside-col .post-link { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+  @media (max-width: 40rem) {
+    .post-list .post-row {
+      grid-template-columns: 1fr;
+      column-gap: 0;
+    }
+  }
+
+  /* Выравнивание верхов + отмена коллапса первого заголовка */
+  .layout-two-col { align-items: start; }
+  .content-col { display: flow-root; padding-top: 0; }
+  .aside-col { padding-top: 0; }
+  .content-col > :first-child, .aside-col > :first-child { margin-top: 0 !important; }
+  .content-col h1:first-child, .content-col h2:first-child { margin-top: 0 !important; }
+
+  /* === Container Query: узко? одна колонка, НО шортсы не скрываем === */
+  @container page (max-width: var(--two-col-cutoff)) {
+    .layout-two-col { grid-template-columns: 1fr !important; }
+    .aside-col {
+      position: static;   /* выключаем sticky */
+      top: auto;
+      max-height: none;
+      overflow: visible;
+      margin-top: 1.25rem; /* отступ под постами */
+    }
+  }
+
+  /* --- ToC (Содержание) в шапке — компакт и скрытие на узких ширинах --- */
+  .language-switcher { container-type: inline-size; container-name: head; }
+  .language-switcher .toc-dock {
+    grid-column: 1 / -1; /* не растягивает колонку с кнопками */
+    grid-row: 3;
+    justify-self: end;
+    max-width: min(42vw, 420px);
+    padding: 4px 0 0;
+    background: transparent;
+    border: 0;
+    font-size: 0.85rem;
+    line-height: 1.25;
+  }
+  .language-switcher { grid-template-rows: auto auto auto; } /* RU/EN | Главная | ToC */
+  .language-switcher .toc-dock .toc-heading-row { display: flex; align-items: baseline; gap: .5rem; margin-bottom: .25rem; }
+  .language-switcher .toc-dock .toc-heading { margin: 0 !important; font-weight: 600; opacity: .9; font-size: 0.9em; }
+  .language-switcher .toc-dock .toc-toggle { min-width: 0; height: auto; padding: 0; border: 0 !important; background: transparent; box-shadow: none; color: inherit; font: inherit; line-height: inherit; text-decoration: underline; cursor: pointer; }
+  .language-switcher .toc-dock .toc-toggle:hover { color: inherit; }
+  .language-switcher .toc-dock .toc-toggle:focus-visible { outline: 1px dotted currentColor; outline-offset: 2px; }
+  .language-switcher .toc-dock.toc-collapsed { max-height: none; overflow: visible; }
+  .language-switcher .toc-dock.toc-collapsed .toc-heading-row { justify-content: flex-end; }
+  .language-switcher .toc-dock.toc-collapsed .toc-content { display: none; }
+  .language-switcher .toc-dock .toc,
+  .language-switcher .toc-dock .toc > ol { margin: 0 !important; padding: 0 !important; }
+  .language-switcher .toc-dock .toc ol,
+  .language-switcher .toc-dock .toc ul { margin: 0 !important; padding: 0 !important; list-style: none; }
+  .language-switcher .toc-dock .toc li { margin: 0; line-height: 1.25; }
+  .language-switcher .toc-dock .toc a {
+    display: block; margin-left: 0;
+    text-decoration: none; color: inherit;
+    white-space: normal !important; overflow-wrap: anywhere; word-break: break-word; hyphens: auto;
+  }
+  .language-switcher .toc-dock .toc a:visited { color: inherit; }
+  .language-switcher .toc-dock .toc li li > a        { margin-left: 1rem; }
+  .language-switcher .toc-dock .toc li li li > a     { margin-left: 1.75rem; }
+  .language-switcher .toc-dock .toc li li li li > a  { margin-left: 2.25rem; }
+  .language-switcher .toc-dock .toc li li li li li > a { margin-left: 2.75rem; }
+
+  /* ToC скрываем при том же пороге */
+  @container head (max-width: var(--two-col-cutoff)) {
+    .language-switcher .toc-dock { display: none !important; }
+  }
+
+  /* Хедер некликабельный в пустых местах; интерактив — кликабелен */
+  .language-switcher, .language-switcher * {
+    -webkit-user-select:none; -moz-user-select:none; user-select:none; -webkit-touch-callout:none;
+  }
+  .language-switcher { pointer-events:none; }
+  .language-switcher :is(a, button, form, .lang-buttons-group, .center, .toc-dock) { pointer-events:auto; }
+
+  /* --- MERMAID: центрирование + патчи --- */
+  .container .mermaid { display: grid; justify-content: center; }
+  .container .mermaid > svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+  pre.mermaid { display:flex; justify-content:center; }
+  pre.mermaid > svg { max-width:100% }
+
+  pre.mermaid svg .edgeLabel foreignObject { overflow: hidden !important; }
+  pre.mermaid svg .edgeLabel foreignObject > div:empty,
+  pre.mermaid svg .edgeLabel .labelBkg:empty,
+  pre.mermaid svg .edgeLabel :is(span, p):empty { display: none !important; }
+  pre.mermaid svg .edgeLabel foreignObject > div:not(:empty),
+  pre.mermaid svg .edgeLabel .labelBkg:not(:empty) {
+    display: inline-block; padding: .25em .6em; border-radius: var(--ui-radius); background: #eee !important;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.18); text-align: center;
+  }
+  pre.mermaid svg .edgeLabel rect { fill: transparent !important; stroke: none !important; }
+  pre.mermaid svg .edgeLabel p { background: transparent !important; }
+
+  /* --- Fallback для движков без Container Queries --- */
+  @supports not (container-type: inline-size) {
+    @media (max-width: var(--two-col-cutoff)) {
+      .layout-two-col { grid-template-columns: 1fr !important; }
+      .aside-col { position: static; top: auto; max-height: none; overflow: visible; margin-top: 1.25rem; }
+      .language-switcher .toc-dock { display: none !important; }
+    }
+  }
+}
+
+/* === PATCH: ToC — отступ + скрытие на узкой ширине ======================= */
+@layer components {
+    /* Порог = 2*24rem + 2rem + 100px ≈ 1400px при 18px.
+       Если у тебя уже объявлены эти переменные выше — тут они просто переопределятся. */
+    :root{
+      --col-min: 24rem;
+      --two-col-gap: 2rem;
+      --extra-room: 1px;
+      --two-col-cutoff: calc((var(--col-min) * 1.5) + var(--two-col-gap) + var(--extra-room));
+      --toc-margin-top: 1rem; /* вернули отступ ToC от кнопки — можно менять */
+    }
+  
+    /* Шапка — контейнер для container-queries (ширина = ширине окна) */
+    .language-switcher {
+      container-type: inline-size;
+      container-name: head;
+      grid-template-rows: auto auto auto; /* RU/EN | Главная | ToC */
+    }
+  
+    /* Сам ToC под кнопкой + нужный отступ */
+    .language-switcher .toc-dock{
+      grid-column: 1 / -1;
+      grid-row: 3;
+      justify-self: end;
+      max-width: min(42vw, 420px);
+      margin-top: var(--toc-margin-top);   /* <-- вернули отступ */
+      background: transparent;
+      border: 0;
+      margin-top: 16vh;
+      font-size: 0.85rem;
+      line-height: 1.25;
+      zoom: .75;
+    }
+  
+    /* Скрываем ToC на узкой ширине (container query) */
+    @container head (max-width: var(--two-col-cutoff)) {
+      .language-switcher .toc-dock{ display: none !important; }
+    }
+  
+    /* Фолбэк на случай отсутствия поддержки CQ — та же граница в px */
+    @media (max-width: 900px) {
+      .language-switcher .toc-dock{ display: none !important; }
+    }
+  }
+  
+  /* === MERMAID: нормальный размер и скрытие исходного <pre> ================= */
+@layer components {
+
+    /* сам контейнер диаграммы */
+    .container .mermaid {
+      display: block;            /* убираем grid/center из прежних правил */
+      margin: 1rem auto;         /* аккуратные внешние отступы */
+      max-width: var(--mermaid-max-width);
+      width: 100%;
+    }
+  
+    /* делаем SVG резиновым по ширине контейнера */
+    .container .mermaid > svg {
+      display: block;
+      width: 100% !important;    /* перебиваем inline-атрибуты width */
+      height: auto !important;
+      max-width: none !important;
+    }
+  
+    /* если мермейд рендерит диаграмму из <pre class="mermaid">,
+       после рендера он ставит data-processed="true" — прячем исходник */
+   
+  
+    /* на всякий случай: если рендер не поменял <pre> на <div> */
+    pre.mermaid > svg {
+      display: block;
+      width: 100% !important;
+      height: auto !important;
+    }
+  }
+  /* === MERMAID: вернуть нормальный размер и не прятать SVG === */
+@layer components {
+    :root { --mermaid-max-width: 980px; } /* можно увеличить */
+  
+    /* Работает и для <div.mermaid>, и для <pre.mermaid> */
+    .mermaid {
+      display: block;
+      margin: 1rem auto;
+      width: 100%;
+      max-width: var(--mermaid-max-width);
+    }
+  
+    /* Резиновое SVG без фиксированных inline width/height */
+    .mermaid > svg {
+      display: block;
+      width: 100% !important;
+      height: auto !important;
+      max-width: none !important;
+    }
+  
+    /* Вариант, когда рендер идёт прямо в <pre class="mermaid">:
+       прячем ТОЛЬКО исходный <code>, а не весь <pre> */
+    pre.mermaid[data-processed="true"] {
+      background: transparent !important;
+      border: 0 !important;
+      padding: 0 !important;
+    }
+    pre.mermaid[data-processed="true"] > code {
+      display: none !important;
+    }
+  
+    /* На всякий случай: если вдруг SVG вставлено в <pre> */
+    pre.mermaid > svg {
+      display: block;
+      width: 100% !important;
+      height: auto !important;
+    }
+  }
+/* === MERMAID: убрать «серую таблетку» в левом верхнем углу === */
+@layer components {
+    /* 1) Никакого фона/капсулы у подписей рёбер */
+    .mermaid .edgeLabel .labelBkg,
+    pre.mermaid svg .edgeLabel .labelBkg {
+      background: transparent !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      border-radius: 0 !important;
+    }
+    /* Вариант через <rect> — тоже прозрачный */
+    .mermaid .edgeLabel rect,
+    pre.mermaid svg .edgeLabel rect {
+      fill: transparent !important;
+      stroke: none !important;
+    }
+  
+    /* 2) Пустые подписи рёбер скрывать целиком (оба варианта DOM) */
+    .mermaid .edgeLabel foreignObject:has(> div:empty),
+    pre.mermaid svg .edgeLabel foreignObject:has(> div:empty),
+    .mermaid .edgeLabel:has(.labelBkg:empty),
+    pre.mermaid svg .edgeLabel:has(.labelBkg:empty) {
+      display: none !important;
+    }
+  
+    /* 3) Заодно не даём 0×0 foreignObject «подтекать» в (0,0) */
+    .mermaid .edgeLabel foreignObject,
+    pre.mermaid svg .edgeLabel foreignObject {
+      overflow: hidden !important;
+    }
+  }
+
+/* -------------------------------------------------------------------------- */
+/* 6) MARKDOWN BLOCKQUOTE — левый цветной бордер + вложенность + типы         */
+/* -------------------------------------------------------------------------- */
+@layer components {
+  /* Базовый блокквот в контенте контейнера */
+  .container blockquote {
+    --bq-accent: var(--bq1-accent);
+    --bq-bg:     var(--bq1-bg);
+
+    margin: 1rem 0;
+    padding: .9rem 1rem .9rem 1rem;
+    background: var(--bq-bg);
+    border-left: 1px solid var(--bq-accent);
+    border-radius: var(--ui-radius);
+    color: inherit;
+  }
+  .container blockquote > :first-child { margin-top: 0; }
+  .container blockquote > :last-child  { margin-bottom: 0; }
+
+  /* Вложенность: авто-акценты */
+  .container blockquote blockquote {
+    --bq-accent: var(--bq2-accent);
+    --bq-bg:     var(--bq2-bg);
+  }
+  .container blockquote blockquote blockquote {
+    --bq-accent: var(--bq3-accent);
+    --bq-bg:     var(--bq3-bg);
+  }
+
+  /* Варианты-подсказки (если движок MD сохраняет классы) */
+  .container blockquote.info    { --bq-accent: var(--info-accent);    --bq-bg: var(--info-bg); }
+  .container blockquote.success { --bq-accent: var(--success-accent); --bq-bg: var(--success-bg); }
+  .container blockquote.warning { --bq-accent: var(--warning-accent); --bq-bg: var(--warning-bg); }
+  .container blockquote.danger  { --bq-accent: var(--danger-accent);  --bq-bg: var(--danger-bg); }
+
+  /* Опционально: градиент вместо сплошной линии (раскомментируй)
+  .container blockquote {
+    border-left-width: 8px;
+    border-top: 0; border-right: 0; border-bottom: 0;
+    border-style: solid;
+    border-image: linear-gradient(180deg, var(--bq-accent), rgba(0,0,0,0)) 1 100%;
+  }
+  */
+
+  /* Печать: убираем фон, делаем ч/б левый бордер */
+  @media print {
+    .container blockquote {
+      background: transparent !important;
+      border-left-color: #000 !important;
+    }
+  }
+}
+
+/* ===== Place inside your stylesheet (e.g., /src/styles.css) ===== */
+@layer components {
+  /* 1) Base: inline "chip" — for spans or inline code */
+  :not(pre) > code.pill,
+  :not(pre) > code.pill-line,
+  .pill,
+  .pill-line {
+    --pill-bg: #f3ffe6;  /* default green-tint */
+    --pill-bd: #b5ffbf;
+    --pill-fg: inherit;
+
+    display: inline-block;
+    padding: 0.1em 0.35em;
+    border-radius: var(--ui-radius);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+    /* font-size: 0.95em; */
+    line-height: inherit;
+    vertical-align: baseline;
+    text-decoration: none;
+  }
+
+  /* 2) Modes: filled and outline (no fill) */
+  :not(pre) > code.pill,
+  .pill {
+    background: var(--pill-bg);
+    border: 1px solid var(--pill-bd);
+    color: var(--pill-fg);
+  }
+  :not(pre) > code.pill-line,
+  .pill-line {
+    background: transparent !important;
+    border: 1px solid var(--pill-bd);
+    color: var(--pill-fg);
+  }
+
+  /* 3) Underline utilities (no border/fill, colored underline) */
+  .u-underline {
+    background: none !important;
+    border: none !important;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.35em;
+    text-decoration-skip-ink: none;
+  }
+  /* Each .u-* sets the underline color via --u */
+  .u-yellow   { --u: #ffbf00; }
+  .u-violet   { --u: #8a5cff; }
+  .u-blue     { --u: #1f7aff; }
+  .u-cyan     { --u: #06b6d4; }
+  .u-green    { --u: #3fbf6b; }
+  .u-orange   { --u: #ff8a1f; }
+  .u-red      { --u: #ff4d4f; }
+  .u-gray     { --u: #9aa4b2; }
+
+  .u-underline { text-decoration-color: var(--u, currentColor); }
+
+  /* 4) Color variants for pills (fill/outline share the same vars) */
+  /* Green (default shown in your snippet) */
+  .pill-green,  :not(pre) > code.pill-green  { --pill-bg:#f3ffe6; --pill-bd:#b5ffbf; --pill-fg:inherit; }
+
+  /* Violet (from your snippet) */
+  .pill-violet, :not(pre) > code.pill-violet { --pill-bg:#f2e6ff; --pill-bd:#cab5ff; --pill-fg:inherit; }
+
+  /* Blue */
+  .pill-blue,   :not(pre) > code.pill-blue   { --pill-bg:#e6f0ff; --pill-bd:#b5ccff; --pill-fg:inherit; }
+
+  /* Cyan / Teal */
+  .pill-cyan,   :not(pre) > code.pill-cyan   { --pill-bg:#e6fbff; --pill-bd:#b5f2ff; --pill-fg:inherit; }
+
+  /* Yellow */
+  .pill-yellow, :not(pre) > code.pill-yellow { --pill-bg:#fff8e6; --pill-bd:#ffe4a3; --pill-fg:inherit; }
+
+  /* Orange */
+  .pill-orange, :not(pre) > code.pill-orange { --pill-bg:#fff1e6; --pill-bd:#ffd0a8; --pill-fg:inherit; }
+
+  /* Red */
+  .pill-red,    :not(pre) > code.pill-red    { --pill-bg:#ffeaea; --pill-bd:#ffc2c2; --pill-fg:inherit; }
+
+  /* Gray / Neutral */
+  .pill-gray,   :not(pre) > code.pill-gray   { --pill-bg:#f2f4f7; --pill-bd:#d0d5dd; --pill-fg:inherit; }
+
+  /* 5) Small polish for inline code when used as a pill */
+  :not(pre) > code.pill,
+  :not(pre) > code.pill-line,
+  :not(pre) > code[class*="language-"].pill,
+  :not(pre) > code[class*="language-"].pill-line {
+    /* neutralize Prism inline background if any */
+    background-clip: padding-box;
+  }
+}
+
+@layer components {
+  /* ===== Numbered ToC (без ведущих нулей) ===== */
+  .toc-dock { font-size: 0.95rem; line-height: 1.3; }
+
+  /* Обёртка: без counter-reset, чтобы не было "0." спереди */
+  .toc-dock nav,
+  .toc-dock .toc {
+    list-style: none;
+    margin: 0;
+    padding-left: 0;
+    /* ВАЖНО: НЕ задаём counter-reset здесь */
+  }
+
+  /* Счётчики только на списках */
+  .toc-dock ol,
+  .toc-dock ul {
+    list-style: none;
+    margin: 0;
+    padding-left: 0;
+    counter-reset: item;
+  }
+
+  /* Каждый вложенный список начинает свой уровень */
+  .toc-dock ol ol,
+  .toc-dock ol ul,
+  .toc-dock ul ol,
+  .toc-dock ul ul {
+    counter-reset: item;
+    margin-left: 0.9em;
+  }
+
+  .toc-dock li {
+    position: relative;
+    display: block;
+    counter-increment: item;
+    padding-left: 2.2em;
+    margin: 0.08rem 0;
+  }
+
+  .toc-dock li::before {
+    content: counters(item, ".") " ";
+    position: absolute;
+    left: 0;
+    width: 1.8em;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.75;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .toc-dock a { text-decoration: none; color: inherit; }
+  .toc-dock a:hover,
+  .toc-dock a:focus-visible { text-decoration: underline; }
+}
+
+@layer components {
+  /* ===== ToC: наглядные номера ===== */
+
+  /* База: аккуратная «колонка» номеров + лёгкая подсветка */
+  .toc-dock li {
+    position: relative;
+    display: block;
+    counter-increment: item;
+    padding-left: 2.4em;              /* дефолтный отступ под номер */
+    margin: 0.08rem 0;
+  }
+  .toc-dock li::before {
+    content: counters(item, ".") " "; /* будет переопределено ниже по стилям */
+    position: absolute;
+    left: 0;
+    /* width: 3.0em;                     ширина «колонки» номера */
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    opacity: .9;
+    /* background: #eef2ff; */
+    border-radius: var(--ui-radius);
+    /* padding: 0.02em 0.35em 0.04em; */
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* Счётчики только на списках — без «0.» спереди */
+  .toc-dock ol, .toc-dock ul { counter-reset: item; margin:0; padding-left:0; list-style:none; }
+  .toc-dock ol ol, .toc-dock ol ul, .toc-dock ul ol, .toc-dock ul ul {
+    counter-reset: item; margin-left: .9em;
+  }
+
+  /* ── Варианты оформления ─────────────────────────────────────────── */
+
+  /* 1) 2.1) 2.1.1)  — скобка-после */
+  .toc-dock[data-style="paren"] li::before {
+    content: counters(item, ".") ") ";
+  }
+
+  /* 1] 2.1] 2.1.1]  — правая квадратная */
+  .toc-dock[data-style="rbracket"] li::before {
+    content: counters(item, ".") "] ";
+  }
+
+  /* [1] [2.1] [2.1.1] — номера в скобках */
+  .toc-dock[data-style="bracket"] li::before {
+    content: "[" counters(item, ".") "] ";
+  }
+
+  /* Разные варианты требуют немного разной ширины «колонки» */
+  .toc-dock[data-style="paren"]   li { padding-left: 2.5em; }
+  .toc-dock[data-style="paren"]   li::before { width: 2.1em; }
+
+  .toc-dock[data-style="rbracket"] li { padding-left: 2.6em; }
+  .toc-dock[data-style="rbracket"] li::before { width: 2.2em; }
+
+  .toc-dock[data-style="bracket"] li { padding-left: 2.8em; }
+  .toc-dock[data-style="bracket"] li::before { width: 2.4em; }
+
+  /* Ховер — подчёркиваем саму ссылку, не номер */
+  .toc-dock a { text-decoration: none; color: inherit; }
+  .toc-dock a:hover, .toc-dock a:focus-visible { text-decoration: underline; }
+}
+
+.footnotes {
+  margin-top: 1.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+  font-size: 0.95em;
+}
+.footnotes ol {
+  padding-left: 1.25rem;
+  margin: 0.5rem 0 0;
+}
+.footnotes li {
+  margin: 0.25rem 0;
+}
+.footnote-ref a,
+a.footnote-backref {
+  text-decoration: none;
+  border-bottom: 1px dotted currentColor;
+}
+a.footnote-backref {
+  margin-left: 0.35em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+}
+
+
+/* Global override: drop inline-block + paddings everywhere */
+:not(pre) > code.pill,
+:not(pre) > code.pill-line,
+.pill,
+.pill-line {
+  display: inline;      /* was inline-block */
+  /* padding-left: 0.25em; */
+  /* padding-right: 0.25em; */
+  /* Optional if you also want a naked look: */
+  /* background: transparent; */
+  /* border: 0; */
+}
+
+
+:not(pre) > code.pill,
+:not(pre) > code.pill-line,
+.pill,
+.pill-line {
+  display: inline;
+  padding-block: 0;         /* no vertical padding */
+  padding-inline: 0.2em;    /* a hair of horizontal breathing room */
+  /* margin-inline-end: 0.35em; */
+  box-decoration-break: clone;
+}
+
+/* Full-bleed оставляем как есть */
+.full-bleed {
+  display: block;
+  inline-size: 100vw;
+  margin-inline: calc(50% - 50vw);
+  max-width: none;
+  grid-column: 1 / -1;
+}
+@supports (width: 100dvw) {
+  .full-bleed { inline-size: 100dvw; margin-inline: calc(50% - 50dvw); }
+}
+
+/* Обёртка для таблиц: безопасный горизонтальный скролл при нехватке места */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-inline: min(12px, 2vw);
+}
+
+/* КЛЮЧ: таблица — не на 100%, а по содержимому; центрируем margin:auto */
+.table-wrap > table {
+  width: max-content;    /* естественная ширина */
+  max-width: 100%;       /* но не шире контейнера */
+  margin-inline: auto;   /* центрирование */
+  border-collapse: collapse;
+  table-layout: auto;    /* пусть сама распределит колонки */
+}
+
+/* Ячейки и шапка — как у тебя было */
+.table-wrap > table th,
+.table-wrap > table td {
+  padding: .5rem .75rem;
+  border: 0px solid #e5e7eb;
+  vertical-align: top;
+  word-wrap: break-word;
+}
+.table-wrap > table thead th {
+  background: #f9fafb;
+  font-weight: 600;
+}
+
+/* Если основной контейнер резал overflow, разрешим выход */
+main.container { overflow: visible; }
+
+/* На случай, если где-то глобально стоит table{width:100%} — переопределим */
+table { width: auto; }                 /* безопасный фоллбек */
+.table-wrap > table { width: max-content; } /* приоритетное правило */
+
+
+/* ВАЖНО: если у твоего основного контейнера было overflow:hidden — разрешим выход */
+main.container { overflow: visible; }
+
+/* === ToC: автоскрытие при наложении широкого контента === */
+.toc-dock{
+  position: sticky;
+  top: var(--toc-top, 72px);
+  max-height: calc(100dvh - var(--toc-top, 72px));
+  overflow: auto;
+}
+
+/* Опционально: тонкая рамка и более компактная типографика ToC */
+.toc-dock .toc-heading{
+  font-size: .9rem;
+  font-weight: 600;
+}
+.toc-dock nav ul{ /* eleventy-plugin-toc выводит <nav> с <ul> */
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+.toc-dock nav li{
+  margin: 0;
+  line-height: 1.25;
+}
+.toc-dock nav a{
+  text-decoration: none;
+}
+
+
+/* 1) Полноэкранный блок: применимо и к DIV-обёртке, и к TABLE напрямую */
+.full-bleed {
+  display: block;
+  inline-size: 100vw;                      /* ширина = ширина окна */
+  margin-inline: calc(50% - 50vw);         /* ровно к краям окна */
+  max-width: none !important;              /* перебиваем любые контейнерные max-width */
+  box-sizing: border-box;
+}
+@supports (width: 100dvw) {
+  .full-bleed { inline-size: 100dvw; margin-inline: calc(50% - 50dvw); }
+}
+
+/* 2) Вариант А: есть DIV-обёртка .table-wrap вокруг таблицы */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-inline: min(12px, 2vw);
+}
+.table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.table-wrap th,
+.table-wrap td {
+  padding: .5rem .75rem;
+  border: 0px solid #e5e7eb;
+  vertical-align: top;
+  word-wrap: break-word;
+}
+.table-wrap thead th {
+  background: #f9fafb;
+  font-weight: 600;
+}
+.table-center > table :is(th, td) { text-align: center !important; }
+
+/* 3) Вариант Б: классы повешены прямо на <table class="full-bleed table-wrap"> */
+table.table-wrap {
+  display: table;                /* возвращаем обычное поведение таблицы */
+  inline-size: 100vw;            /* растягиваем по экрану */
+  margin-inline: calc(50% - 50vw);
+  max-width: none !important;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+@supports (width: 100dvw) {
+  table.table-wrap {
+    inline-size: 100dvw;
+    margin-inline: calc(50% - 50dvw);
+  }
+}
+table.table-wrap th,
+table.table-wrap td {
+  padding: .5rem .75rem;
+  border: 0px solid #e5e7eb;
+  vertical-align: top;
+  word-wrap: break-word;
+}
+table.table-wrap thead th {
+  background: #f9fafb;
+  font-weight: 600;
+}
+
+/* Таблицы используют тот же радиус, что карточки, код и кнопки. */
+main.container table {
+  --table-divider: #eeeaf1;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--table-divider);
+  border-radius: var(--ui-radius);
+  overflow: hidden;
+}
+main.container table > :is(thead, tbody, tfoot) > tr > :is(th, td) {
+  border-inline-end: 1px solid var(--table-divider);
+  border-block-end: 1px solid var(--table-divider);
+}
+main.container table > :is(thead, tbody, tfoot) > tr > :last-child { border-inline-end: 0; }
+main.container table > :last-child > tr:last-child > :is(th, td) { border-block-end: 0; }
+main.container table > :first-child > tr:first-child > :first-child { border-start-start-radius: var(--ui-radius); }
+main.container table > :first-child > tr:first-child > :last-child { border-start-end-radius: var(--ui-radius); }
+main.container table > :last-child > tr:last-child > :first-child { border-end-start-radius: var(--ui-radius); }
+main.container table > :last-child > tr:last-child > :last-child { border-end-end-radius: var(--ui-radius); }
+main.container table tbody tr > :is(th, td) { transition: background-color 120ms ease; }
+main.container table tbody tr:hover > :is(th, td) { background: #ffec99; }
+main.container table ::selection { background: #d8ccff; color: #111; }
+main.container table ::-moz-selection { background: #d8ccff; color: #111; }
+
+/* 4) Если основной контейнер что-то «режет» — разрешим выход */
+main.container,
+article,
+.prose {
+  overflow: visible;
+}
+
+/* 5) На случай глобального правила типа: article > * { max-width: 65ch } */
+table.full-bleed,
+div.full-bleed {
+  max-width: none !important;
+}
+.center-inner > table,
+table.center-inner {
+  width: max-content;        /* ширина по содержимому */
+  margin-inline: auto;       /* центрируем внутри full-bleed */
+  table-layout: auto;
+}
+
+table.table-wrap.center-inner {
+  display:table;
+  width:max-content;
+  max-width:100%;
+  margin-inline:auto;
+  border-collapse:collapse;
+  table-layout:auto;
+}
+
+/* Row border on hover — no layout shift, no JS */
+.table-row-hover tbody tr{
+  position: relative;            /* anchor for the overlay */
+  z-index: 0;                    /* keep stacking sane */
+}
+
+.table-row-hover tbody tr::after{
+  content: "";
+  position: absolute;
+  inset: 0;                      /* cover the whole row */
+  border: 1px solid #d0d7de;     /* row border color */
+  border-radius: var(--ui-radius); /* optional, remove if unwanted */
+  pointer-events: none;          /* don't block mouse events */
+  opacity: 0;
+  
+}
+
+.table-row-hover tbody tr:hover::after{
+  opacity: 1;                    /* show on hover, hide on mouseout */
+}
+
+/* keyboard accessibility (keeps border when focusing links/inputs in the row) */
+.table-row-hover tbody tr:focus-within::after{
+  opacity: 1;
+}
+
+/* Широкие машинные отчёты: фиксируем смысловые колонки и скроллим всю таблицу. */
+.proxy-report-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-inline: min(1rem, 2vw);
+  margin-block: 1rem 1.5rem;
+}
+
+.proxy-report-table {
+  width: max-content;
+  min-width: max(100%, 118rem);
+  table-layout: auto;
+  font-size: .82rem;
+  line-height: 1.25;
+}
+
+.proxy-report-table :is(th, td) {
+  vertical-align: top;
+  text-align: left !important;
+}
+
+.proxy-report-table th {
+  white-space: nowrap;
+}
+
+.proxy-report-table code {
+  display: inline;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  white-space: inherit;
+}
+
+.proxy-report-table__probe {
+  min-width: 13rem;
+  white-space: nowrap;
+}
+
+.proxy-report-table__count {
+  width: 5rem;
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.proxy-report-table__rules {
+  width: 32rem;
+  max-width: 32rem;
+}
+
+.proxy-report-table__rule-block {
+  display: grid;
+  grid-template-columns: 4.75rem minmax(0, 1fr);
+  gap: .5rem;
+  align-items: start;
+}
+
+.proxy-report-table__rule-block + .proxy-report-table__rule-block {
+  margin-top: .45rem;
+  padding-top: .45rem;
+  border-top: 1px solid var(--table-divider);
+}
+
+.proxy-report-table__rule-label {
+  color: #5634bd;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.proxy-report-table__rule-code {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font: inherit;
+  white-space: pre-wrap;
+  overflow: visible;
+}
+
+.proxy-report-table__rule-code code,
+.proxy-report-table__examples code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.proxy-report-table__response {
+  width: 8.5rem;
+  white-space: nowrap;
+}
+
+.proxy-report-table__response--hit {
+  background: #fff9d6;
+}
+
+.proxy-report-table tbody tr:hover > :is(th, td) {
+  background: #fffdf4;
+}
+
+.proxy-report-table tbody tr:hover > .proxy-report-table__response--hit {
+  background: #fff6c2;
+}
+
+.proxy-report-table__backend-uri {
+  margin-top: .25rem;
+  color: #625d6e;
+  font-size: .86em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.proxy-report-table__examples {
+  width: 46rem;
+  max-width: 46rem;
+}
+
+.proxy-report-table__examples ul {
+  margin: 0;
+  padding-inline-start: 1rem;
+}
+
+.proxy-report-table__examples li + li {
+  margin-top: .35rem;
+}
+
+.proxy-report-table__profiles {
+  margin-top: .3rem;
+  color: #625d6e;
+  font-size: .82em;
+  white-space: normal;
+}
+
+/* === 1) Ховер-зум для Mermaid (масштаб на SVG) =========================== */
+
+.mermaid-zoom {
+  position: relative;
+  overflow: visible;          /* позволяем выходить за контейнер при scale */
+  cursor: zoom-in;
+}
+
+.mermaid-zoom .mermaid,
+.mermaid-zoom svg {
+  display: block;
+  max-inline-size: none;      /* не ограничиваем ширину SVG, пусть масштабируется свободно */
+  transform-origin: center center;
+  transition: transform 160ms ease, filter 160ms ease;
+  will-change: transform;
+}
+
+/* Плагин генерирует <div class="mermaid"><svg>…</svg></div> — целимся в <svg> */
+.mermaid-zoom:hover .mermaid > svg,
+.mermaid-zoom:focus-within .mermaid > svg,
+.mermaid-zoom:hover > svg,
+.mermaid-zoom:focus-within > svg {
+  transform: scale(1);
+  
+}
+
+.mermaid-zoom:hover { z-index: 10; }  /* поднять над соседями при ховере */
+
+/* Чуть деликатнее на узких экранах */
+@media (max-width: 640px) {
+  .mermaid-zoom:hover .mermaid > svg,
+  .mermaid-zoom:focus-within .mermaid > svg,
+  .mermaid-zoom:hover > svg,
+  .mermaid-zoom:focus-within > svg {
+    transform: scale(1);
+  }
+}
+
+/* === 2) Full-bleed обёртка для диаграмм (как у вашей таблицы) =========== */
+.diagram-bleed {
+  display: block;
+  inline-size: 100vw;                       /* во всю ширину окна */
+  margin-inline: calc(50% - 50vw);          /* выравниваем к краям окна */
+  max-width: none !important;
+  box-sizing: border-box;
+}
+
+@supports (width: 90dvw) {
+  .diagram-bleed {
+    inline-size: 90dvw;
+    margin-inline: calc(50% - 45dvw);       /* ✅ было 50dvw — должно быть 45dvw */
+  }
+}
+
+/* Необязательная «внутренняя рамка», если захотите стартовую ширину по центру */
+.diagram-bleed .diagram-inner {
+  max-inline-size: min(1200px, 92vw);
+  margin-inline: auto;
+  padding-inline: min(12px, 2vw);
+}
+
+/* Если какой-то предок вдруг режет переполнение — снимите именно тут, точечно.
+   (Не включайте это глобально, если не нужно) */
+/* .container { overflow: visible; } */
+
+/* -------------------------------------------------------------------------- */
+/* 4.x) BASE — глобальный цвет выделения (selection) + частные случаи         */
+/* -------------------------------------------------------------------------- */
+@layer base {
+  /* Глобально: системное выделение текста (мышью/клавишей) */
+  ::selection { background: #ffec99; color: #111; }       /* светло-жёлтый, контрастный */
+  ::-moz-selection { background: #ffec99; color: #111; }  /* Firefox */
+
+  /* Чуть темнее в кодовых блоках, чтобы читалось на #f6f8fa */
+  pre[class*="language-"] ::selection,
+  code[class*="language-"] ::selection { background: #ffe08a; color: #111; }
+  pre[class*="language-"] ::-moz-selection,
+  code[class*="language-"] ::-moz-selection { background: #ffe08a; color: #111; }
+
+  /* Не меняем фон у ссылок при выделении — подчёркивание остаётся читаемым */
+  a::selection, a::-moz-selection { text-decoration: underline; }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 5.x) COMPONENTS — постоянная жёлтая подсветка (не selection)               */
+/* -------------------------------------------------------------------------- */
+@layer components {
+  /* Вариант 1: семантический <mark> с аккуратным стилем */
+  mark {
+    background: #fff2a8;           /* мягкий жёлтый */
+    color: inherit;
+    padding: 0 .15em;              /* без «встряски» строки */
+    border-radius: var(--ui-radius);
+    box-decoration-break: clone;   /* корректные переносы */
+  }
+
+  /* Вариант 2: «маркер» под строкой (подложка на высоте текста) */
+  .hl-yellow {
+    background: linear-gradient(transparent 62%, #fff2a8 62%);
+    border: 0;
+    box-decoration-break: clone;
+  }
+
+  /* Утилита: подчёркивание жёлтым (у вас уже есть .yellow-underline/.u-underline — оставляю совместимость) */
+  .u-underline.u-yellow,
+  .yellow-underline { text-decoration-color: #ffbf00; }
+
+  /* (Опционально) Тёмная тема: сделать подсветку потемнее ради контраста */
+  @media (prefers-color-scheme: dark) {
+    ::selection, ::-moz-selection { background: #ffd666; color: #111; }
+    pre[class*="language-"] ::selection,
+    code[class*="language-"] ::selection,
+    pre[class*="language-"] ::-moz-selection,
+    code[class*="language-"] ::-moz-selection { background: #ffc84d; color: #111; }
+    mark { background: #ffd666; }
+    .hl-yellow { background: linear-gradient(transparent 62%, #ffd666 62%); }
+  }
+}

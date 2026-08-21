@@ -1,0 +1,408 @@
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>rackodej/Antares-1B</title>
+    <meta property="og:title" content="rackodej/Antares-1B">
+    <meta name="twitter:title" content="rackodej/Antares-1B">
+    <link rel="alternate" type="application/rss+xml" title="rackodej RSS (EN)" href="../../../en/feed.xml">
+    <link rel="stylesheet" href="../../../src/styles.css">
+    <link rel="stylesheet" href="../../../src/prism-layer.css">
+    <link rel="stylesheet" href="https://unpkg.com/prismjs/themes/prism-okaidia.css">
+<link rel="stylesheet" href="https://unpkg.com/prismjs/plugins/command-line/prism-command-line.css">
+
+
+
+  </head>
+  <body>
+    <div class="language-switcher"><div class="lang-buttons-group right">
+          <form action="../../../ru/posts/antares-1b/" method="get" class="xp-form-inline">
+            <button type="submit"
+                    
+                    >
+              RU
+            </button>
+          </form>
+          <form action="../../../en/posts/antares-1b/" method="get" class="xp-form-inline">
+            <button type="submit"
+                    aria-pressed="true"
+                    >
+              EN
+            </button>
+          </form>
+        </div><form action="../../../en/" method="get" class="xp-form-inline center">
+        <button type="submit">Main</button>
+      </form>
+
+      <div class="toc-dock toc-collapsed">
+          <div class="toc-heading-row">
+            <div class="toc-heading" id="toc-title">Contents</div>
+            <button class="toc-toggle" type="button" aria-expanded="false" aria-controls="page-toc" data-hide-label="[hide]" data-show-label="[show]">[show]</button>
+          </div>
+          <div class="toc-content" id="page-toc" aria-labelledby="toc-title">
+            <nav class="toc" >
+        <ol><li><a href="#%3E-antares-1b">&gt; Antares-1B</a></li><li><a href="#requirements">Requirements</a></li><li><a href="#installation">Installation</a></li><li><a href="#a-custom-completion-proxy">A custom completion proxy</a></li><li><a href="#first-scan">First scan</a></li><li><a href="#owasp-top-10-for-testing">OWASP Top 10 for testing</a></li><li><a href="#antares-cli">Antares CLI</a></li><li><a href="#testing-against-known-vulnerable-projects">Testing against known-vulnerable projects</a></li><li><a href="#conclusion">Conclusion</a></li></ol>
+      </nav>
+          </div>
+        </div></div>
+
+    <main class="container"><h1 id="%3E-antares-1b" tabindex="-1">&gt; Antares-1B</h1>
+<blockquote>
+<p>Antares-1B is a small Cisco security model based on Granite 4.0. It was fine-tuned with SFT<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup> + GRPO<sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a></sup> to find vulnerable code regions through its own agent harness.</p>
+</blockquote>
+<p>This model can augment SAST results in CI/CD. Send the “highlighted” files to larger models for taint analysis.</p>
+<p>A full scan of <a href="https://github.com/appsecco/dvja">DVJA</a> searching for CWE-78 finished in 39 seconds and found a vulnerability in <code>PingAction.java</code>. It failed badly on OWASP <a href="https://github.com/OWASP-Benchmark/BenchmarkJava/">BenchmarkJava</a>.</p>
+<p><img src="../../../content/posts/antares-1b/images/bronze.jpg" alt="bronze" class="img-center"></p>
+<h1 id="requirements" tabindex="-1">Requirements</h1>
+<ul>
+<li>Python 3.11+ and uv</li>
+<li>A Hugging Face account with approved access to <a href="https://huggingface.co/fdtn-ai/antares-1b">fdtn-ai/antares-1b</a></li>
+</ul>
+<p>For Metal, use the ready-made 8-bit MLX quantization: <a href="https://huggingface.co/dpoled/antares-1b-mlx-8bit">dpoled/antares-1b-mlx-8bit</a>.</p>
+<h1 id="installation" tabindex="-1">Installation</h1>
+<p>Download the official CLI, create an environment, and fetch the model:</p>
+<pre class="language-bash"><code class="language-bash"><span class="highlight-line"><span class="token function">mkdir</span> <span class="token parameter variable">-p</span> ~/antares-mlx</span>
+<span class="highlight-line"><span class="token builtin class-name">cd</span> ~/antares-mlx</span>
+<span class="highlight-line"></span>
+<span class="highlight-line">python3 <span class="token parameter variable">-m</span> pip <span class="token function">install</span> <span class="token parameter variable">-U</span> <span class="token string">"huggingface_hub[cli]"</span></span>
+<span class="highlight-line">hf auth login</span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token comment"># Do not forget the access-approval form.</span></span>
+<span class="highlight-line">hf download fdtn-ai/antares-1b <span class="token parameter variable">--include</span> <span class="token string">"*.zip"</span> --local-dir ./assets</span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token function">unzip</span> ./assets/assets/antares-cli.zip <span class="token parameter variable">-d</span> ./cli</span>
+<span class="highlight-line"></span>
+<span class="highlight-line">uv venv runtime</span>
+<span class="highlight-line">uv pip <span class="token function">install</span> <span class="token parameter variable">--python</span> runtime/bin/python mlx-lm fastapi uvicorn</span>
+<span class="highlight-line">uv pip <span class="token function">install</span> <span class="token parameter variable">--python</span> runtime/bin/python ./cli</span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token comment"># About 2 GB.</span></span>
+<span class="highlight-line"><span class="token assign-left variable">HF_HUB_DISABLE_XET</span><span class="token operator">=</span><span class="token number">1</span> hf download dpoled/antares-1b-mlx-8bit --local-dir ./model</span></code></pre>
+<h1 id="a-custom-completion-proxy" tabindex="-1">A custom completion proxy</h1>
+<p>The Antares CLI calls an OpenAI-compatible <code>/v1/completions</code> endpoint and sends XML tool calls to its agent. The built-in <code>mlx_lm.server</code> supports the OpenAI API but may handle tool calls itself. That does not work for Antares: the XML must be returned to the client unchanged.</p>
+<p>So, run a small local proxy: it uses MLX for inference but returns the text stream as-is.</p>
+<p>Save <code>mlx_raw_server.py</code> next to the <code>model</code> directory:</p>
+<pre class="language-python"><code class="language-python"><span class="highlight-line"><span class="token keyword">from</span> pathlib <span class="token keyword">import</span> Path</span>
+<span class="highlight-line"><span class="token keyword">from</span> typing <span class="token keyword">import</span> Literal</span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token keyword">from</span> fastapi <span class="token keyword">import</span> FastAPI</span>
+<span class="highlight-line"><span class="token keyword">from</span> fastapi<span class="token punctuation">.</span>responses <span class="token keyword">import</span> StreamingResponse</span>
+<span class="highlight-line"><span class="token keyword">from</span> pydantic <span class="token keyword">import</span> BaseModel<span class="token punctuation">,</span> Field</span>
+<span class="highlight-line"><span class="token keyword">from</span> mlx_lm <span class="token keyword">import</span> load<span class="token punctuation">,</span> stream_generate</span>
+<span class="highlight-line"><span class="token keyword">from</span> mlx_lm<span class="token punctuation">.</span>sample_utils <span class="token keyword">import</span> make_sampler</span>
+<span class="highlight-line"><span class="token keyword">import</span> json</span>
+<span class="highlight-line"></span>
+<span class="highlight-line">MODEL_ID <span class="token operator">=</span> <span class="token string">"antares-1b-mlx-8bit"</span></span>
+<span class="highlight-line">MODEL_PATH <span class="token operator">=</span> <span class="token builtin">str</span><span class="token punctuation">(</span>Path<span class="token punctuation">(</span>__file__<span class="token punctuation">)</span><span class="token punctuation">.</span>resolve<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>parent <span class="token operator">/</span> <span class="token string">"model"</span><span class="token punctuation">)</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line">app <span class="token operator">=</span> FastAPI<span class="token punctuation">(</span><span class="token punctuation">)</span></span>
+<span class="highlight-line">model<span class="token punctuation">,</span> tokenizer <span class="token operator">=</span> load<span class="token punctuation">(</span>MODEL_PATH<span class="token punctuation">)</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token keyword">class</span> <span class="token class-name">CompletionRequest</span><span class="token punctuation">(</span>BaseModel<span class="token punctuation">)</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">    model<span class="token punctuation">:</span> <span class="token builtin">str</span></span>
+<span class="highlight-line">    prompt<span class="token punctuation">:</span> <span class="token builtin">str</span></span>
+<span class="highlight-line">    max_tokens<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token number">1024</span><span class="token punctuation">,</span> ge<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">,</span> le<span class="token operator">=</span><span class="token number">4096</span><span class="token punctuation">)</span></span>
+<span class="highlight-line">    temperature<span class="token punctuation">:</span> <span class="token builtin">float</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token number">0.0</span><span class="token punctuation">,</span> ge<span class="token operator">=</span><span class="token number">0.0</span><span class="token punctuation">)</span></span>
+<span class="highlight-line">    top_p<span class="token punctuation">:</span> <span class="token builtin">float</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token number">1.0</span><span class="token punctuation">,</span> gt<span class="token operator">=</span><span class="token number">0.0</span><span class="token punctuation">,</span> le<span class="token operator">=</span><span class="token number">1.0</span><span class="token punctuation">)</span></span>
+<span class="highlight-line">    stream<span class="token punctuation">:</span> <span class="token builtin">bool</span> <span class="token operator">=</span> <span class="token boolean">True</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token decorator annotation punctuation">@app<span class="token punctuation">.</span>get</span><span class="token punctuation">(</span><span class="token string">"/v1/models"</span><span class="token punctuation">)</span></span>
+<span class="highlight-line"><span class="token keyword">def</span> <span class="token function">models</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">    <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"object"</span><span class="token punctuation">:</span> <span class="token string">"list"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"id"</span><span class="token punctuation">:</span> MODEL_ID<span class="token punctuation">,</span> <span class="token string">"object"</span><span class="token punctuation">:</span> <span class="token string">"model"</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token decorator annotation punctuation">@app<span class="token punctuation">.</span>post</span><span class="token punctuation">(</span><span class="token string">"/v1/completions"</span><span class="token punctuation">)</span></span>
+<span class="highlight-line"><span class="token keyword">def</span> <span class="token function">completions</span><span class="token punctuation">(</span>request<span class="token punctuation">:</span> CompletionRequest<span class="token punctuation">)</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">    <span class="token keyword">def</span> <span class="token function">events</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">        sampler <span class="token operator">=</span> make_sampler<span class="token punctuation">(</span></span>
+<span class="highlight-line">            temp<span class="token operator">=</span>request<span class="token punctuation">.</span>temperature<span class="token punctuation">,</span></span>
+<span class="highlight-line">            top_p<span class="token operator">=</span>request<span class="token punctuation">.</span>top_p<span class="token punctuation">,</span></span>
+<span class="highlight-line">        <span class="token punctuation">)</span></span>
+<span class="highlight-line">        <span class="token keyword">for</span> response <span class="token keyword">in</span> stream_generate<span class="token punctuation">(</span></span>
+<span class="highlight-line">            model<span class="token punctuation">,</span> tokenizer<span class="token punctuation">,</span></span>
+<span class="highlight-line">            prompt<span class="token operator">=</span>request<span class="token punctuation">.</span>prompt<span class="token punctuation">,</span></span>
+<span class="highlight-line">            max_tokens<span class="token operator">=</span>request<span class="token punctuation">.</span>max_tokens<span class="token punctuation">,</span></span>
+<span class="highlight-line">            sampler<span class="token operator">=</span>sampler<span class="token punctuation">,</span></span>
+<span class="highlight-line">        <span class="token punctuation">)</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">            payload <span class="token operator">=</span> <span class="token punctuation">{</span></span>
+<span class="highlight-line">                <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"antares-local"</span><span class="token punctuation">,</span></span>
+<span class="highlight-line">                <span class="token string">"object"</span><span class="token punctuation">:</span> <span class="token string">"text_completion"</span><span class="token punctuation">,</span></span>
+<span class="highlight-line">                <span class="token string">"choices"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span></span>
+<span class="highlight-line">                    <span class="token string">"index"</span><span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span></span>
+<span class="highlight-line">                    <span class="token string">"text"</span><span class="token punctuation">:</span> response<span class="token punctuation">.</span>text<span class="token punctuation">,</span></span>
+<span class="highlight-line">                    <span class="token string">"finish_reason"</span><span class="token punctuation">:</span> <span class="token boolean">None</span><span class="token punctuation">,</span></span>
+<span class="highlight-line">                <span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span></span>
+<span class="highlight-line">            <span class="token punctuation">}</span></span>
+<span class="highlight-line">            <span class="token keyword">yield</span> <span class="token string-interpolation"><span class="token string">f"data: </span><span class="token interpolation"><span class="token punctuation">{</span>json<span class="token punctuation">.</span>dumps<span class="token punctuation">(</span>payload<span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">\\n\\n"</span></span></span>
+<span class="highlight-line">        <span class="token keyword">yield</span> <span class="token string">"data: [DONE]\\n\\n"</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line">    <span class="token keyword">return</span> StreamingResponse<span class="token punctuation">(</span>events<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> media_type<span class="token operator">=</span><span class="token string">"text/event-stream"</span><span class="token punctuation">)</span></span></code></pre>
+<p>The model is small and starts very quickly:</p>
+<pre class="language-zsh"><code class="language-zsh"><span class="highlight-line">cd ~/antares-mlx</span>
+<span class="highlight-line">runtime/bin/python -m uvicorn mlx_raw_server:app --host 127.0.0.1 --port 8081</span></code></pre>
+<p>Check it:</p>
+<pre class="language-zsh"><code class="language-zsh"><span class="highlight-line">curl http://127.0.0.1:8081/v1/models</span></code></pre>
+<h1 id="first-scan" tabindex="-1">First scan</h1>
+<p>Set the local proxy address and start a scan. It creates a read-only snapshot, limited to 100,000 files and 2 GB, so do not automatically scan open-source mirrors.</p>
+<pre class="language-bash"><code class="language-bash"><span class="highlight-line"><span class="token builtin class-name">cd</span> ~/antares-mlx</span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token builtin class-name">export</span> <span class="token assign-left variable">ANTARES_MODEL</span><span class="token operator">=</span>antares-1b</span>
+<span class="highlight-line"><span class="token builtin class-name">export</span> <span class="token assign-left variable">ANTARES_ENDPOINT</span><span class="token operator">=</span>http://127.0.0.1:8081/v1/completions</span>
+<span class="highlight-line"><span class="token builtin class-name">export</span> <span class="token assign-left variable">ANTARES_DATA_DIR</span><span class="token operator">=</span><span class="token string">"<span class="token environment constant">$PWD</span>/data"</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line">runtime/bin/antares query <span class="token punctuation">..</span>/dvja <span class="token parameter variable">--cwe</span> CWE-78 --tool-budget <span class="token number">50</span> <span class="token parameter variable">--output</span> <span class="token string">"<span class="token environment constant">$PWD</span>/report"</span></span></code></pre>
+<p><code>--tool-budget 50</code> is the agent action budget: file searches, code-fragment reads, and other steps. The maximum is 50.</p>
+<p>It produces Markdown, JSON, and SARIF. The result is simply the file name in which it found something :) with no details, because it does <code>file-level vulnerability localization</code>: in <code>PingAction.java</code>, something looks suspiciously like <code class="pill pill-green">CWE-78</code>.</p>
+<p>Example report:</p>
+<pre class="language-markdown"><code class="language-markdown"><span class="highlight-line"><span class="token title important"><span class="token punctuation">#</span> Antares Security Report</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token title important"><span class="token punctuation">##</span> Summary</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token list punctuation">-</span> Status: Complete</span>
+<span class="highlight-line"><span class="token list punctuation">-</span> Findings: 1</span>
+<span class="highlight-line"><span class="token list punctuation">-</span> Affected files: 1</span>
+<span class="highlight-line"><span class="token list punctuation">-</span> CWEs checked: 3</span>
+<span class="highlight-line"><span class="token list punctuation">-</span> CWEs with findings: 3</span>
+<span class="highlight-line"><span class="token list punctuation">-</span> Duration: 31.73s</span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token title important"><span class="token punctuation">##</span> Findings by file</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token title important"><span class="token punctuation">###</span> `src/main/java/com/appsecco/dvja/services/UserService.java` — 1 finding</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token title important"><span class="token punctuation">####</span> CWE\-862 — Missing Authorization</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token title important"><span class="token punctuation">#####</span> Missing Authorization / Authorization Bypass Through User\-Controlled Key / Improper Access Control</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token list punctuation">-</span> Related CWEs: CWE\-639 — Authorization Bypass Through User\-Controlled Key, CWE\-284 — Improper Access Control</span>
+<span class="highlight-line"><span class="token list punctuation">-</span> Submission rank: 1</span>
+<span class="highlight-line"><span class="token list punctuation">-</span> Likelihood of exploit: High</span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token title important"><span class="token punctuation">##</span> Scan coverage</span></span>
+<span class="highlight-line"></span>
+<span class="token table"><span class="token table-header-row"><span class="token punctuation">|</span><span class="token table-header important"> CWE </span><span class="token punctuation">|</span><span class="token table-header important"> Outcome </span><span class="token punctuation">|</span>
+<span class="highlight-line"></span><span class="token table-line"><span class="token punctuation">|</span> <span class="token punctuation">---</span> <span class="token punctuation">|</span> <span class="token punctuation">---</span> <span class="token punctuation">|</span></span>
+<span class="highlight-line"></span><span class="token table-data-rows"><span class="token punctuation">|</span><span class="token table-data"> CWE\-862 — Missing Authorization </span><span class="token punctuation">|</span><span class="token table-data"> 1 finding </span><span class="token punctuation">|</span></span>
+<span class="highlight-line"><span class="token punctuation">|</span><span class="token table-data"> CWE\-639 — Authorization Bypass Through User\-Controlled Key </span><span class="token punctuation">|</span><span class="token table-data"> 1 finding </span><span class="token punctuation">|</span></span>
+<span class="highlight-line"><span class="token punctuation">|</span><span class="token table-data"> CWE\-284 — Improper Access Control </span><span class="token punctuation">|</span><span class="token table-data"> 1 finding </span><span class="token punctuation">|</span></span>
+</span></span>
+<span class="highlight-line"><span class="token title important"><span class="token punctuation">##</span> Scan details</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token list punctuation">-</span> Total tool calls: 15</span>
+<span class="highlight-line"><span class="token list punctuation">-</span> Failed tool calls: 1</span>
+<span class="highlight-line"><span class="token list punctuation">-</span> Retried turns: 0%</span></code></pre>
+<h1 id="owasp-top-10-for-testing" tabindex="-1">OWASP Top 10 for testing</h1>
+<div class="table-wrap center-inner table-row-hover" style="flex:1; display: flex; justify-content: center;">
+<table>
+<thead>
+<tr>
+<th>OWASP</th>
+<th>Category</th>
+<th>CWE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A01</td>
+<td>Broken Access Control</td>
+<td><code>CWE-862</code>, <code>CWE-639</code>, <code>CWE-284</code></td>
+</tr>
+<tr>
+<td>A02</td>
+<td>Security Misconfiguration</td>
+<td><code>CWE-16</code>, <code>CWE-209</code></td>
+</tr>
+<tr>
+<td>A03</td>
+<td>Software Supply Chain Failures</td>
+<td><code>CWE-1104</code>, <code>CWE-1395</code></td>
+</tr>
+<tr>
+<td>A04</td>
+<td>Cryptographic Failures</td>
+<td><code>CWE-798</code>, <code>CWE-327</code>, <code>CWE-326</code></td>
+</tr>
+<tr>
+<td>A05</td>
+<td>Injection</td>
+<td><code>CWE-78</code>, <code>CWE-79</code>, <code>CWE-89</code>, <code>CWE-94</code>, <code>CWE-643</code>, <code>CWE-917</code></td>
+</tr>
+<tr>
+<td>A06</td>
+<td>Insecure Design</td>
+<td><code>CWE-840</code>, <code>CWE-602</code></td>
+</tr>
+<tr>
+<td>A07</td>
+<td>Authentication Failures</td>
+<td><code>CWE-287</code>, <code>CWE-384</code>, <code>CWE-613</code></td>
+</tr>
+<tr>
+<td>A08</td>
+<td>Software or Data Integrity Failures</td>
+<td><code>CWE-502</code>, <code>CWE-494</code>, <code>CWE-829</code></td>
+</tr>
+<tr>
+<td>A09</td>
+<td>Security Logging &amp; Alerting Failures</td>
+<td><code>CWE-778</code>, <code>CWE-223</code></td>
+</tr>
+<tr>
+<td>A10</td>
+<td>Mishandling of Exceptional Conditions</td>
+<td><code>CWE-703</code>, <code>CWE-391</code>, <code>CWE-209</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>It is better to run each row as a separate scan: more budget remains for the specific hypothesis. For <code>A05</code>, for example:</p>
+<pre class="language-zsh"><code class="language-zsh"><span class="highlight-line">  --cwe CWE-78,CWE-79,CWE-89,CWE-94,CWE-643,CWE-917 --query "Trace the data path from input to dangerous sinks"</span></code></pre>
+<h1 id="antares-cli" tabindex="-1">Antares CLI</h1>
+<p>It looks like an interesting tool for debugging the model’s results.</p>
+<p>antares <code>query</code> scans repositories for specified CWEs.</p>
+<p>antares <code>sweep</code> selects CWEs automatically or uses those supplied explicitly.</p>
+<p>antares <code>plan</code> shows which CWEs would be selected without calling the model.</p>
+<p>antares <code>models</code> shows information about the connected model.</p>
+<p>antares <code>runs</code> lists runs and traces.</p>
+<p>antares <code>completion</code> provides shell completion.</p>
+<p>antares <code>tool</code> provides JSON-RPC over stdin.</p>
+<h1 id="testing-against-known-vulnerable-projects" tabindex="-1">Testing against known-vulnerable projects</h1>
+<p>I checked it with two one-off runs.</p>
+<div class="table-wrap center-inner table-row-hover" style="flex:1; display: flex; justify-content: center;">
+<table>
+<thead>
+<tr>
+<th>Project</th>
+<th>Query</th>
+<th>Result</th>
+<th>Verification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/OWASP-Benchmark/BenchmarkJava">OWASP Benchmark Java</a></td>
+<td><code>CWE-78</code>, budget 50</td>
+<td><code>BenchmarkTest00177.java</code>, High; 242.99 s; 36 tool calls</td>
+<td>In <a href="https://github.com/OWASP-Benchmark/BenchmarkJava/blob/master/expectedresults-1.2.csv">expectedresults-1.2.csv</a>, this test is marked <code>false</code> for CWE-78.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/WebGoat/WebGoat">OWASP WebGoat</a></td>
+<td><code>CWE-862,CWE-639,CWE-284</code>, budget 25</td>
+<td><code>lessons/idor/IDORLogin.java</code>, High; 118.00 s; 27 tool calls</td>
+<td>The model landed in the <a href="https://github.com/WebGoat/WebGoat/tree/main/src/main/java/org/owasp/webgoat/lessons/idor">IDOR</a> module—close, but very imprecise. There are many more issues.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h1 id="conclusion" tabindex="-1">Conclusion</h1>
+<p>It is great that, alongside SAST, we can now use small specialized LLMs almost in real time to rapidly inspect code for various CWEs.</p>
+<hr class="footnotes-sep">
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p>SFT – supervised fine-tuning <a href="#fnref1" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn2" class="footnote-item"><p>GRPO – Group Relative Policy Optimization <a href="#fnref2" class="footnote-backref">↩︎</a></p>
+</li>
+</ol>
+</section>
+
+    </main>
+
+    <footer class="site-footer"></footer>
+    <script defer src="../../../src/copy.js"></script>
+    <script defer src="../../../src/ln-gaps.js"></script>
+    <script defer src="../../../src/asciinema-loader.js"></script>
+    <script defer src="../../../src/anki-cards.js"></script>
+    <script defer src="../../../src/activity-popover.js"></script>
+    <script>
+  window.__DEV_FONT_EXTRA = {
+    stacks: {
+      system: 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      forma:  '"Forma", Tahoma, "Segoe UI", Arial, sans-serif',
+      ia:     '"iA Writer Duospace", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace',
+      jb:     '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+
+      inter: '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif',
+      roboto: '"Roboto", system-ui, -apple-system, "Segoe UI", "Noto Sans", Arial, sans-serif',
+      notosans: '"Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      ibmplexsans: '"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      ptsans: '"PT Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      opensans: '"Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      manrope: '"Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      golos: '"Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      firasans: '"Fira Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      ubuntu: '"Ubuntu", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      mulish: '"Mulish", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      rubik: '"Rubik", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      exo2: '"Exo 2", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      lato: '"Lato", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      montserrat: '"Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      oswald: '"Oswald", "Noto Sans", system-ui, -apple-system, "Segoe UI", Arial, sans-serif',
+      notoserif: '"Noto Serif", Georgia, "Times New Roman", serif',
+      ptserif: '"PT Serif", Georgia, "Times New Roman", serif',
+      merriweather: '"Merriweather", Georgia, "Times New Roman", serif',
+      lora: '"Lora", Georgia, "Times New Roman", serif',
+      literata: '"Literata", Georgia, "Times New Roman", serif',
+      playfair: '"Playfair Display", "Times New Roman", Georgia, serif',
+      jbmono: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      firacode: '"Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      plexmono: '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      ptmono: '"PT Mono", ui-monospace, Menlo, Consolas, monospace',
+      ubuntumono: '"Ubuntu Mono", ui-monospace, Menlo, Consolas, monospace',
+      cousine: '"Cousine", ui-monospace, Menlo, Consolas, monospace',
+    },
+    webfonts: {
+      forma: '',
+      ia:    'https://fonts.googleapis.com/css2?family=IA+Writer+Duospace&display=swap',
+      jb:    'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap',
+
+      inter: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap&subset=cyrillic',
+      roboto: 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap&subset=cyrillic',
+      notosans: 'https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      ibmplexsans: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      ptsans: 'https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap&subset=cyrillic',
+      opensans: 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      manrope: 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap&subset=cyrillic',
+      golos: 'https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;600;700&display=swap&subset=cyrillic',
+      firasans: 'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      ubuntu: 'https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap&subset=cyrillic',
+      mulish: 'https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700&display=swap&subset=cyrillic',
+      rubik: 'https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap&subset=cyrillic',
+      exo2: 'https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap&subset=cyrillic',
+      lato: 'https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap&subset=cyrillic',
+      montserrat: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap&subset=cyrillic',
+      oswald: 'https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap&subset=cyrillic',
+      notoserif: 'https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&display=swap&subset=cyrillic',
+      ptserif: 'https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&display=swap&subset=cyrillic',
+      merriweather: 'https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap&subset=cyrillic',
+      lora: 'https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap&subset=cyrillic',
+      literata: 'https://fonts.googleapis.com/css2?family=Literata:wght@400;600;700&display=swap&subset=cyrillic',
+      playfair: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap&subset=cyrillic',
+      jbmono: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap&subset=cyrillic',
+      firacode: 'https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap&subset=cyrillic',
+      plexmono: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap&subset=cyrillic',
+      ptmono: 'https://fonts.googleapis.com/css2?family=PT+Mono&display=swap&subset=cyrillic',
+      ubuntumono: 'https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap&subset=cyrillic',
+      cousine: 'https://fonts.googleapis.com/css2?family=Cousine:wght@400;700&display=swap&subset=cyrillic',
+    }
+  };
+</script>
+
+    <!-- script defer src="../../../src/dev-fonts.js"></script -->
+  <script type="module" async>import mermaid from "https://unpkg.com/mermaid@11.11.0/dist/mermaid.esm.min.mjs";document.addEventListener('DOMContentLoaded', mermaid.initialize({"loadOnSave":true}));</script>
+  <script defer src="../../../src/toc-autohide.js"></script>
+<script>window.Prism = window.Prism || {}; Prism.manual = true;</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+
+<!-- Языки, которые реально используешь -->
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js" defer></script>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/command-line/prism-command-line.min.js" defer></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('pre.command-line > code').forEach(Prism.highlightElement);
+  });
+</script>
+  </body>
+  
+</html>

